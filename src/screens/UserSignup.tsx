@@ -19,8 +19,17 @@ type RootStackParamList = {
   Login: undefined;
   OrdinaryLogin: undefined;
   OrdinarySignup: undefined;
-  UserSignup: undefined;
-  PetSignup: undefined;
+  UserSignup: {
+    email: string;
+    password: string;
+    verificationCode: string;
+  };
+  PetSignup: {
+    email: string;
+    password: string;
+    verificationCode: string;
+    nickname: string;
+  };
 };
 
 type UserSignupScreenNavigationProp = NativeStackNavigationProp<
@@ -30,9 +39,17 @@ type UserSignupScreenNavigationProp = NativeStackNavigationProp<
 
 interface Props {
   navigation: UserSignupScreenNavigationProp;
+  route: {
+    params: {
+      email: string;
+      password: string;
+      verificationCode: string;
+    };
+  };
 }
 
-const UserSignup: React.FC<Props> = ({ navigation }) => {
+const UserSignup: React.FC<Props> = ({ navigation, route }) => {
+  const { email, password, verificationCode } = route.params;
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
   const [nicknameError, setNicknameError] = useState('');
@@ -129,7 +146,12 @@ const UserSignup: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleNext = () => {
-    navigation.navigate('PetSignup');
+    navigation.navigate('PetSignup', {
+      email,
+      password,
+      verificationCode,
+      nickname,
+    });
   };
 
   const isNextEnabled = nickname !== '' && nicknameError === '';

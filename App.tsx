@@ -20,8 +20,17 @@ export type RootStackParamList = {
   Login: undefined;
   OrdinaryLogin: undefined;
   OrdinarySignup: undefined;
-  UserSignup: undefined;
-  PetSignup: undefined;
+  UserSignup: {
+    email: string;
+    password: string;
+    verificationCode: string;
+  };
+  PetSignup: {
+    email: string;
+    password: string;
+    verificationCode: string;
+    nickname: string;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

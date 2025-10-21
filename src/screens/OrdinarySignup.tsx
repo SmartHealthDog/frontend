@@ -26,7 +26,17 @@ type RootStackParamList = {
   Login: undefined;
   OrdinaryLogin: undefined;
   OrdinarySignup: undefined;
-  UserSignup: undefined;
+  UserSignup: {
+    email: string;
+    password: string;
+    verificationCode: string;
+  };
+  PetSignup: {
+    email: string;
+    password: string;
+    verificationCode: string;
+    nickname: string;
+  };
 };
 
 type OrdinarySignupScreenNavigationProp = NativeStackNavigationProp<
@@ -138,7 +148,11 @@ const OrdinarySignup: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleNext = () => {
-    navigation.navigate('UserSignup');
+    navigation.navigate('UserSignup', {
+      email,
+      password,
+      verificationCode,
+    });
   };
 
   const isNextEnabled = email !== '' && password !== '' && emailError === '' && passwordError === '' && verificationCode !== '';
