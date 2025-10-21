@@ -119,8 +119,10 @@ const UserSignup: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    if (text.length > 20) {
-      setNicknameError('닉네임은 20자를 초과할 수 없습니다.');
+    if (text.length < 3) {
+      setNicknameError('닉네임은 최소 3자 이상이어야 합니다.');
+    } else if (text.length > 128) {
+      setNicknameError('닉네임은 128자를 초과할 수 없습니다.');
     } else {
       setNicknameError('');
     }
@@ -180,7 +182,7 @@ const UserSignup: React.FC<Props> = ({ navigation }) => {
             placeholderTextColor="#7B7C7D"
             value={nickname}
             onChangeText={validateNickname}
-            maxLength={21}
+            maxLength={129}
             autoCapitalize="none"
             autoCorrect={false}
           />
