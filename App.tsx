@@ -5,41 +5,58 @@
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import React from 'react';
+import { StatusBar, useColorScheme } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import LoginScreen from './src/screens/LoginScreen';
+import OrdinaryLogin from './src/screens/OrdinaryLogin';
+import OrdinarySignup from './src/screens/OrdinarySignup';
+import UserSignup from './src/screens/UserSignup';
+import PetSignup from './src/screens/PetSignup';
+
+export type RootStackParamList = {
+  Login: undefined;
+  OrdinaryLogin: undefined;
+  OrdinarySignup: undefined;
+  UserSignup: {
+    email: string;
+    password: string;
+    verificationCode: string;
+  };
+  PetSignup: {
+    email: string;
+    password: string;
+    verificationCode: string;
+    nickname: string;
+  };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <NavigationContainer>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="OrdinaryLogin" component={OrdinaryLogin} />
+          <Stack.Screen name="OrdinarySignup" component={OrdinarySignup} />
+          <Stack.Screen name="UserSignup" component={UserSignup} />
+          <Stack.Screen name="PetSignup" component={PetSignup} />
+        </Stack.Navigator>
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;
