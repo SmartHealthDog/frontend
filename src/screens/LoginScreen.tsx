@@ -10,9 +10,16 @@ import {
   Platform,
   Image,
   Animated,
+  Alert,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LogoAnimation from '../components/LogoAnimation';
+import {
+  login,
+  getProfile,
+  KakaoOAuthToken,
+  KakaoProfile,
+} from '@react-native-seoul/kakao-login';
 
 type RootStackParamList = {
   Login: undefined;
@@ -36,9 +43,36 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const animationLayerOpacity = useRef(new Animated.Value(1)).current;
   const buttonsOpacity = useRef(new Animated.Value(0)).current;
 
-  const handleKakaoLogin = () => {
-    // 카카오 로그인 로직 (추후 구현)
-    console.log('카카오 로그인 클릭');
+  const handleKakaoLogin = async () => {
+    try {
+      // 카카오 로그인
+      const token: KakaoOAuthToken = await login();
+      console.log('카카오 로그인 성공', token);
+
+      // 사용자 프로필 정보 가져오기
+      const profile: KakaoProfile = await getProfile();
+      console.log('카카오 프로필', profile);
+
+      // TODO: 백엔드로 토큰 전송 및 회원가입/로그인 처리
+      Alert.alert(
+        '로그인 성공',
+        `환영합니다, ${profile.nickname}님!`,
+        [{ text: '확인' }]
+      );
+
+    } catch (error: any) {
+      console.error('카카오 로그인 실패', error);
+      if (error.code === 'E_CANCELLED_OPERATION') {
+        // 사용자가 로그인 취소
+        console.log('사용자가 로그인을 취소했습니다.');
+      } else {
+        Alert.alert(
+          '로그인 실패',
+          '카카오 로그인 중 오류가 발생했습니다.',
+          [{ text: '확인' }]
+        );
+      }
+    }
   };
 
   const handleNormalLogin = () => {

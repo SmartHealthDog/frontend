@@ -15,6 +15,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import CustomButton from '../components/CustomButton';
 
 // 플랫폼별 API URL 설정
@@ -183,28 +184,40 @@ const PetSignup: React.FC<Props> = ({ navigation, route }) => {
     
     try {
       const apiUrl = `${getApiBaseUrl()}/api/auth/register`;
-      const requestBody = {
-        nickname: nickname,
+      
+      // request 파트 (JSON)
+      const requestData = {
         email: email,
         password: password,
-        verificationCode: verificationCode,
+        emailVerificationToken: verificationCode,
+        nickname: nickname,
       };
       
       console.log('=== 회원가입 요청 시작 ===');
       console.log('API URL:', apiUrl);
-      console.log('요청 데이터:', requestBody);
+      console.log('요청 데이터:', requestData);
       
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // react-native-blob-util을 사용하여 multipart/form-data 전송
+      const response = await ReactNativeBlobUtil.fetch(
+        'POST',
+        apiUrl,
+        {
+          'Content-Type': 'multipart/form-data',
         },
-        body: JSON.stringify(requestBody),
-      });
+        [
+          // request 파트 (JSON)
+          {
+            name: 'request',
+            data: JSON.stringify(requestData),
+            type: 'application/json',
+          },
+        ]
+      );
 
-      console.log('응답 상태 코드:', response.status);
+      const statusCode = response.info().status;
+      console.log('응답 상태 코드:', statusCode);
       
-      if (response.status === 201) {
+      if (statusCode === 201) {
         console.log('회원가입 성공!');
         Alert.alert('회원가입 완료', '회원가입이 완료되었습니다.', [
           {
@@ -218,7 +231,7 @@ const PetSignup: React.FC<Props> = ({ navigation, route }) => {
           },
         ]);
       } else {
-        const responseText = await response.text();
+        const responseText = response.data;
         console.log('응답 텍스트:', responseText);
         
         let errorData: any = {};
@@ -237,7 +250,7 @@ const PetSignup: React.FC<Props> = ({ navigation, route }) => {
         } else if (errorData.message) {
           errorMessage = errorData.message;
         }
-        errorMessage += `\n(상태 코드: ${response.status})`;
+        errorMessage += `\n(상태 코드: ${statusCode})`;
         
         Alert.alert('오류', errorMessage);
       }
