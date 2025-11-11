@@ -15,6 +15,7 @@ import OrdinaryLogin from './src/screens/OrdinaryLogin';
 import OrdinarySignup from './src/screens/OrdinarySignup';
 import UserSignup from './src/screens/UserSignup';
 import PetSignup from './src/screens/PetSignup';
+import TabNavigator from './src/navigation/TabBar';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -31,6 +32,7 @@ export type RootStackParamList = {
     verificationCode: string;
     nickname: string;
   };
+  Main: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -53,6 +55,7 @@ function App() {
           <Stack.Screen name="OrdinarySignup" component={OrdinarySignup} />
           <Stack.Screen name="UserSignup" component={UserSignup} />
           <Stack.Screen name="PetSignup" component={PetSignup} />
+          <Stack.Screen name="Main" component={TabNavigator} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
