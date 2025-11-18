@@ -13,9 +13,13 @@ import {
   Alert,
   Clipboard,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App';
 import Header from '../components/Header';
 import CustomButton from '../components/CustomButton';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 type TabType = '보호소 소개' | '입양 홍보';
 
@@ -28,6 +32,15 @@ interface ShelterInfo {
   rating: number;
   address: string;
   phone: string;
+  image: any;
+}
+
+interface AnimalInfo {
+  type: '강아지' | '고양이';
+  tags: string[];
+  breed: string;
+  age: string;
+  location: string;
   image: any;
 }
 
@@ -87,6 +100,7 @@ const DISTRICTS: { [key: string]: string[] } = {
 const PET_TYPES = ['모두', '강아지', '고양이'];
 
 export default function AdoptScreen() {
+  const navigation = useNavigation<NavigationProp>();
   const [activeTab, setActiveTab] = useState<TabType>('보호소 소개');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('');
@@ -382,6 +396,82 @@ export default function AdoptScreen() {
                   style={styles.dropdownIcon}
                 />
               </TouchableOpacity>
+            </View>
+
+            {/* 동물 카드 리스트 */}
+            <View style={styles.animalListContainer}>
+              {(() => {
+                // 더미 데이터 생성
+                const dogs: AnimalInfo[] = [1, 2, 3, 4, 5].map((item) => ({
+                  type: '강아지' as const,
+                  tags: ['공고중', '수컷'],
+                  breed: '[개] 믹스견',
+                  age: '3개월(추정)',
+                  location: '양천구',
+                  image: require('../assets/img_adoptDog.png'),
+                }));
+
+                const cats: AnimalInfo[] = [1, 2, 3, 4, 5].map((item) => ({
+                  type: '고양이' as const,
+                  tags: ['공고중', '수컷'],
+                  breed: '[묘] 코리안숏헤어',
+                  age: '3개월(추정)',
+                  location: '양천구',
+                  image: require('../assets/img_adoptCat.png'),
+                }));
+
+                // 전체 동물 리스트
+                const allAnimals = [...dogs, ...cats];
+
+                // 선택된 타입에 따라 필터링
+                const filteredAnimals = 
+                  selectedPetType === '모두' 
+                    ? allAnimals
+                    : allAnimals.filter(animal => animal.type === selectedPetType);
+
+                return filteredAnimals.map((animal, index) => (
+                  <TouchableOpacity
+                    key={`${animal.type}-${index}`}
+                    style={styles.animalCard}
+                    onPress={() => navigation.navigate('AnimalDetail', { animalData: animal })}
+                    activeOpacity={0.7}
+                  >
+                    {/* 동물 사진 */}
+                    <Image
+                      source={animal.image}
+                      style={styles.animalImage}
+                    />
+
+                    {/* 동물 정보 */}
+                    <View style={styles.animalInfo}>
+                      {/* 동물 태그 */}
+                      <View style={styles.tagsContainer}>
+                        {animal.tags.map((tag, tagIndex) => (
+                          <View key={tagIndex} style={styles.tag}>
+                            <Text style={styles.tagText}>{tag}</Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      {/* 품종, 나이, 구조장소 */}
+                      <View style={styles.detailsContainer}>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>품종</Text>
+                          <Text style={styles.detailValue}>{animal.breed}</Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>나이</Text>
+                          <Text style={styles.detailValue}>{animal.age}</Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>구조장소</Text>
+                          <Text style={styles.detailValue}>{animal.location}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ));
+              })()}
             </View>
           </View>
         )}
@@ -892,5 +982,63 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 40,
     alignItems: 'center',
+  },
+  animalListContainer: {
+    alignItems: 'center',
+    paddingBottom: 120,
+  },
+  animalCard: {
+    width: 350,
+    flexDirection: 'row',
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  animalImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 20,
+  },
+  animalInfo: {
+    marginLeft: 18,
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  tag: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: '#E7F1FF',
+    backgroundColor: '#F2FBFA',
+    marginRight: 4,
+  },
+  tagText: {
+    color: '#0081D5',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  detailsContainer: {
+    gap: 4,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailLabel: {
+    width: 50,
+    color: '#7B7C7D',
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'left',
+  },
+  detailValue: {
+    marginLeft: 16,
+    color: '#7B7C7D',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
