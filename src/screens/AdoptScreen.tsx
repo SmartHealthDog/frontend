@@ -1,9 +1,35 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, ScrollView } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Image, 
+  Modal, 
+  ScrollView,
+  Animated,
+  PanResponder,
+  Dimensions,
+  Alert,
+  Clipboard,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Header from '../components/Header';
+import CustomButton from '../components/CustomButton';
 
 type TabType = '보호소 소개' | '입양 홍보';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const INITIAL_BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT - 200;
+const MAX_BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT - 100;
+
+interface ShelterInfo {
+  name: string;
+  rating: number;
+  address: string;
+  phone: string;
+  image: any;
+}
 
 // 지역 데이터
 const REGIONS = [
@@ -68,6 +94,11 @@ export default function AdoptScreen() {
   const [showDistrictModal, setShowDistrictModal] = useState(false);
   const [selectedPetType, setSelectedPetType] = useState<string>('모두');
   const [showPetTypeModal, setShowPetTypeModal] = useState(false);
+  const [selectedShelter, setSelectedShelter] = useState<ShelterInfo | null>(null);
+  const [showBottomSheet, setShowBottomSheet] = useState(false);
+  
+  const bottomSheetHeight = useRef(new Animated.Value(INITIAL_BOTTOM_SHEET_HEIGHT)).current;
+  const bottomSheetY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   // 화면이 포커스될 때마다 선택 내용 초기화
   useFocusEffect(
@@ -87,6 +118,83 @@ export default function AdoptScreen() {
       return 140;
     } else {
       return 150; // 기본값 (선택 안 됨 or 2글자 이하)
+    }
+  };
+
+  // 바텀시트 열기
+  const openBottomSheet = (shelter: ShelterInfo) => {
+    setSelectedShelter(shelter);
+    setShowBottomSheet(true);
+    bottomSheetY.setValue(SCREEN_HEIGHT);
+    Animated.spring(bottomSheetY, {
+      toValue: SCREEN_HEIGHT - INITIAL_BOTTOM_SHEET_HEIGHT,
+      useNativeDriver: false,
+      tension: 50,
+    }).start();
+  };
+
+  // 바텀시트 닫기
+  const closeBottomSheet = () => {
+    Animated.timing(bottomSheetY, {
+      toValue: SCREEN_HEIGHT,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => {
+      setShowBottomSheet(false);
+      setSelectedShelter(null);
+    });
+  };
+
+  // 바텀시트 드래그 핸들러
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dy) > 5;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const newY = SCREEN_HEIGHT - INITIAL_BOTTOM_SHEET_HEIGHT + gestureState.dy;
+        const minY = SCREEN_HEIGHT - MAX_BOTTOM_SHEET_HEIGHT;
+        const maxY = SCREEN_HEIGHT - INITIAL_BOTTOM_SHEET_HEIGHT;
+        
+        if (newY >= minY && newY <= maxY) {
+          bottomSheetY.setValue(newY);
+        } else if (newY > maxY) {
+          bottomSheetY.setValue(newY);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const currentY = SCREEN_HEIGHT - INITIAL_BOTTOM_SHEET_HEIGHT + gestureState.dy;
+        
+        // 아래로 드래그 - 닫기
+        if (gestureState.dy > 100) {
+          closeBottomSheet();
+        }
+        // 위로 드래그 - 전체 화면
+        else if (gestureState.dy < -50) {
+          Animated.spring(bottomSheetY, {
+            toValue: SCREEN_HEIGHT - MAX_BOTTOM_SHEET_HEIGHT,
+            useNativeDriver: false,
+            tension: 50,
+          }).start();
+        }
+        // 원래 위치로
+        else {
+          Animated.spring(bottomSheetY, {
+            toValue: SCREEN_HEIGHT - INITIAL_BOTTOM_SHEET_HEIGHT,
+            useNativeDriver: false,
+            tension: 50,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  // 전화번호 복사
+  const copyPhoneNumber = () => {
+    if (selectedShelter?.phone) {
+      Clipboard.setString(selectedShelter.phone);
+      Alert.alert('보호소 전화번호가 복사되었습니다.');
     }
   };
 
@@ -201,6 +309,61 @@ export default function AdoptScreen() {
                 >
                   <Text style={styles.refreshButtonText}>재검색</Text>
                 </TouchableOpacity>
+              </View>
+
+              {/* 보호소 카드 리스트 */}
+              <View style={styles.shelterListContainer}>
+                {[1, 2, 3, 4, 5].map((item) => {
+                  const shelter: ShelterInfo = {
+                    name: 'ABC 동물병원',
+                    rating: 4.5,
+                    address: '서울시 양천구 신목로 100 2층',
+                    phone: '02-1234-5678',
+                    image: require('../assets/adopt_placeholder.png'),
+                  };
+                  
+                  return (
+                    <TouchableOpacity 
+                      key={item} 
+                      style={styles.shelterCard}
+                      onPress={() => openBottomSheet(shelter)}
+                      activeOpacity={0.7}
+                    >
+                      {/* 기관 사진 */}
+                      <Image
+                        source={shelter.image}
+                        style={styles.shelterImage}
+                      />
+
+                      {/* 기관 정보 */}
+                      <View style={styles.shelterInfo}>
+                        {/* 이름 */}
+                        <Text style={styles.shelterName}>{shelter.name}</Text>
+
+                        {/* 별점 */}
+                        <View style={styles.ratingContainer}>
+                          <Image
+                            source={require('../assets/icon_rating.png')}
+                            style={styles.ratingIcon}
+                          />
+                          <Text style={styles.ratingText}>{shelter.rating.toFixed(1)}</Text>
+                        </View>
+
+                        {/* 주소 */}
+                        <Text style={styles.shelterAddress}>{shelter.address}</Text>
+
+                        {/* 전화번호 */}
+                        <View style={styles.phoneContainer}>
+                          <Image
+                            source={require('../assets/icon_phoneNum.png')}
+                            style={styles.phoneIcon}
+                          />
+                          <Text style={styles.phoneText}>{shelter.phone}</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
           </View>
@@ -317,6 +480,107 @@ export default function AdoptScreen() {
             </ScrollView>
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* 보호소 정보 바텀시트 */}
+      <Modal
+        visible={showBottomSheet}
+        transparent={true}
+        animationType="none"
+        onRequestClose={closeBottomSheet}
+      >
+        <View style={styles.bottomSheetOverlay}>
+          <TouchableOpacity
+            style={styles.bottomSheetBackground}
+            activeOpacity={1}
+            onPress={closeBottomSheet}
+          />
+          <Animated.View
+            style={[
+              styles.bottomSheetContainer,
+              {
+                transform: [{ translateY: bottomSheetY }],
+              },
+            ]}
+          >
+            {/* 드래그 핸들 영역 */}
+            <View {...panResponder.panHandlers} style={styles.dragHandleArea}>
+              <View style={styles.dragHandle} />
+            </View>
+
+            <ScrollView 
+              style={styles.bottomSheetContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {selectedShelter && (
+                <>
+                  {/* 보호소 이미지 */}
+                  <View style={styles.bottomSheetImageContainer}>
+                    <Image
+                      source={selectedShelter.image}
+                      style={styles.bottomSheetImage}
+                    />
+                  </View>
+
+                  {/* 기관 이름 */}
+                  <Text style={styles.bottomSheetName}>{selectedShelter.name}</Text>
+
+                  {/* 별점 */}
+                  <View style={styles.bottomSheetRating}>
+                    <Image
+                      source={require('../assets/icon_rating.png')}
+                      style={styles.ratingIcon}
+                    />
+                    <Text style={styles.ratingText}>{selectedShelter.rating.toFixed(1)}</Text>
+                  </View>
+
+                  {/* 구분선 */}
+                  <View style={styles.divider} />
+
+                  {/* 영업시간 */}
+                  <View style={styles.infoRow}>
+                    <Image
+                      source={require('../assets/icon_openTime.png')}
+                      style={styles.infoIcon}
+                    />
+                    <View style={styles.infoTextContainer}>
+                      <Text style={styles.infoTextHighlight}>영업중</Text>
+                      <Text style={styles.infoText}>(화) 11:00 - 22:00</Text>
+                    </View>
+                  </View>
+
+                  {/* 주소 */}
+                  <View style={styles.infoRow}>
+                    <Image
+                      source={require('../assets/icon_addressInfo.png')}
+                      style={styles.infoIcon}
+                    />
+                    <Text style={styles.infoText}>{selectedShelter.address}</Text>
+                  </View>
+
+                  {/* 전화번호 */}
+                  <View style={styles.infoRow}>
+                    <Image
+                      source={require('../assets/icon_phoneNum.png')}
+                      style={styles.infoIcon}
+                    />
+                    <Text style={styles.infoText}>{selectedShelter.phone}</Text>
+                  </View>
+
+                  {/* 전화하기 버튼 */}
+                  <View style={styles.bottomSheetButtonContainer}>
+                    <CustomButton
+                      text="전화하기"
+                      onPress={copyPhoneNumber}
+                      disabled={!selectedShelter.phone}
+                      width={350}
+                    />
+                  </View>
+                </>
+              )}
+            </ScrollView>
+          </Animated.View>
+        </View>
       </Modal>
     </View>
   );
@@ -469,5 +733,164 @@ const styles = StyleSheet.create({
   modalItemText: {
     fontSize: 16,
     color: '#1F2024',
+  },
+  shelterListContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+    paddingBottom: 120,
+  },
+  shelterCard: {
+    width: 350,
+    flexDirection: 'row',
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  shelterImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 20,
+  },
+  shelterInfo: {
+    marginLeft: 18,
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  shelterName: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  ratingIcon: {
+    width: 16,
+    height: 16,
+  },
+  ratingText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 5,
+  },
+  shelterAddress: {
+    color: '#7B7C7D',
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  phoneContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    backgroundColor: '#EEF7FD',
+    alignSelf: 'flex-start',
+  },
+  phoneIcon: {
+    width: 14,
+    height: 14,
+  },
+  phoneText: {
+    color: '#7B7C7D',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 5,
+  },
+  bottomSheetOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  bottomSheetBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.30)',
+  },
+  bottomSheetContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    minHeight: INITIAL_BOTTOM_SHEET_HEIGHT,
+    maxHeight: MAX_BOTTOM_SHEET_HEIGHT,
+  },
+  dragHandleArea: {
+    width: '100%',
+    height: 44,
+    alignItems: 'center',
+    paddingTop: 20,
+  },
+  dragHandle: {
+    width: 32,
+    height: 4,
+    backgroundColor: '#B3B6B8',
+    borderRadius: 2,
+  },
+  bottomSheetContent: {
+    paddingHorizontal: 20,
+  },
+  bottomSheetImageContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  bottomSheetImage: {
+    width: 350,
+    height: 200,
+    borderRadius: 12,
+  },
+  bottomSheetName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 10,
+  },
+  bottomSheetRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  divider: {
+    width: 350,
+    height: 1,
+    backgroundColor: '#E4E4E4',
+    marginVertical: 20,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  infoIcon: {
+    width: 16,
+    height: 16,
+    marginRight: 8,
+  },
+  infoTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  infoTextHighlight: {
+    color: '#0081D5',
+    fontSize: 16,
+    fontWeight: '700',
+    marginRight: 8,
+  },
+  bottomSheetButtonContainer: {
+    marginTop: 20,
+    marginBottom: 40,
+    alignItems: 'center',
   },
 });
