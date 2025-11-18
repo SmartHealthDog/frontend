@@ -14,17 +14,12 @@ import {
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LogoAnimation from '../components/LogoAnimation';
-import {
-  login,
-  getProfile,
-  KakaoOAuthToken,
-  KakaoProfile,
-} from '@react-native-seoul/kakao-login';
 
 type RootStackParamList = {
   Login: undefined;
   OrdinaryLogin: undefined;
   OrdinarySignup: undefined;
+  Main: undefined;
 };
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
@@ -43,36 +38,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const animationLayerOpacity = useRef(new Animated.Value(1)).current;
   const buttonsOpacity = useRef(new Animated.Value(0)).current;
 
-  const handleKakaoLogin = async () => {
-    try {
-      // 카카오 로그인
-      const token: KakaoOAuthToken = await login();
-      console.log('카카오 로그인 성공', token);
-
-      // 사용자 프로필 정보 가져오기
-      const profile: KakaoProfile = await getProfile();
-      console.log('카카오 프로필', profile);
-
-      // TODO: 백엔드로 토큰 전송 및 회원가입/로그인 처리
-      Alert.alert(
-        '로그인 성공',
-        `환영합니다, ${profile.nickname}님!`,
-        [{ text: '확인' }]
-      );
-
-    } catch (error: any) {
-      console.error('카카오 로그인 실패', error);
-      if (error.code === 'E_CANCELLED_OPERATION') {
-        // 사용자가 로그인 취소
-        console.log('사용자가 로그인을 취소했습니다.');
-      } else {
-        Alert.alert(
-          '로그인 실패',
-          '카카오 로그인 중 오류가 발생했습니다.',
-          [{ text: '확인' }]
-        );
-      }
-    }
+  const handleKakaoLogin = () => {
+    // 카카오 로그인 로직 (추후 구현)
+    console.log('카카오 로그인 클릭');
   };
 
   const handleNormalLogin = () => {
@@ -83,6 +51,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const handleSignUp = () => {
     // OrdinarySignup 화면으로 이동
     navigation.navigate('OrdinarySignup');
+  };
+
+  const handleGoToHome = () => {
+    // 개발용: Main(TabNavigator) 화면으로 바로 이동
+    navigation.navigate('Main');
   };
 
   const handleAnimationComplete = () => {
@@ -175,6 +148,15 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={styles.signUpText}>회원이 아니신가요?</Text>
                 <Text style={styles.signUpLink}>회원가입</Text>
               </View>
+            </TouchableOpacity>
+
+            {/* 개발용 임시 버튼 */}
+            <TouchableOpacity 
+              style={styles.devButton} 
+              onPress={handleGoToHome}
+              disabled={!showLoginForm}
+            >
+              <Text style={styles.devButtonText}>🏠 홈으로 바로가기 (개발용)</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -310,6 +292,30 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginLeft: 11,
     fontFamily: 'Pretendard-Bold',
+  },
+  devButton: {
+    marginTop: 30,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 8,
+    // Shadow for iOS
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    // Shadow for Android
+    elevation: 3,
+  },
+  devButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontFamily: 'Pretendard-SemiBold',
   },
 });
 

@@ -15,6 +15,8 @@ import OrdinaryLogin from './src/screens/OrdinaryLogin';
 import OrdinarySignup from './src/screens/OrdinarySignup';
 import UserSignup from './src/screens/UserSignup';
 import PetSignup from './src/screens/PetSignup';
+import TabNavigator from './src/navigation/TabBar';
+import AnimalDetailScreen from './src/screens/AnimalDetailScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -30,6 +32,17 @@ export type RootStackParamList = {
     password: string;
     verificationCode: string;
     nickname: string;
+  };
+  Main: undefined;
+  AnimalDetail: {
+    animalData: {
+      type: '강아지' | '고양이';
+      tags: string[];
+      breed: string;
+      age: string;
+      location: string;
+      image: any;
+    };
   };
 };
 
@@ -53,6 +66,8 @@ function App() {
           <Stack.Screen name="OrdinarySignup" component={OrdinarySignup} />
           <Stack.Screen name="UserSignup" component={UserSignup} />
           <Stack.Screen name="PetSignup" component={PetSignup} />
+          <Stack.Screen name="Main" component={TabNavigator} />
+          <Stack.Screen name="AnimalDetail" component={AnimalDetailScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
