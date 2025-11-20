@@ -74,7 +74,8 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111',   // 진한 텍스트
+    color: '#111', 
+    // 진한 텍스트
   },
   
   subInfo: {

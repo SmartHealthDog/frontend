@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     fontWeight: '500',
+    fontFamily: 'Pretendard-SemiBold',
   },
 
   username: {
@@ -47,6 +48,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#000',
+    fontFamily: 'Pretendard-SemiBold',
   },
 });
 

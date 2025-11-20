@@ -1,17 +1,16 @@
 console.log("📢 HomeScreen Loaded");
 import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
-import TitleBar from '../components/TitleBar';
 import PetHealthCard from '../components/PetHealthCard';
-import BannerCard from '../components/BannerCard';
 import ProfileCard from '../components/ProfileCard';
 import BannerSlider from '../components/BannerSlider';
+import Header from '../components/Header';
 
 
 export default function HomeScreen() {
   return (
     <ScrollView style={styles.container}>
-      <TitleBar />
+      <Header />
 
       {/* 전체 컨텐츠 영역 */}
       <View style={styles.contentWrap}>
@@ -45,7 +44,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: "600",
     marginTop: 32,
     marginBottom: 16,
   },
