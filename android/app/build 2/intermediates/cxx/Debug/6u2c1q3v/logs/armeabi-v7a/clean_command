@@ -1,0 +1,4 @@
+/Users/seoyoung/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -C \
+  "/Users/seoyoung/Desktop/캡스톤 디자인 2025/frontend/android/app/.cxx/Debug/6u2c1q3v/armeabi-v7a" \
+  clean
