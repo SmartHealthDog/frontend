@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
 interface Props {
   title: string;
@@ -7,11 +7,16 @@ interface Props {
   image: any;
   imageType?: 'eye' | 'urine';   // 👉 이미지 크기+위치 구분용
   style?: any;
+  onPress?: () => void; 
 }
 
-const DiagnosisCard: React.FC<Props> = ({ title, description, image, imageType = 'eye', style }) => {
+const DiagnosisCard: React.FC<Props> = ({ title, description, image, imageType = 'eye', style, onPress }) => {
   return (
-    <View style={[styles.card, style]}>
+    <TouchableOpacity 
+      style={[styles.card, style]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
       <Text style={styles.cardTitle}>{title}</Text>
       <Text style={styles.cardDesc}>{description}</Text>
 
@@ -22,7 +27,7 @@ const DiagnosisCard: React.FC<Props> = ({ title, description, image, imageType =
           imageType === "eye" ? styles.eyePosition : styles.urinePosition
         ]}
       />
-    </View>
+    </TouchableOpacity>
   );
 };
 
