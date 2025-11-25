@@ -4,6 +4,7 @@
  *
  * @format
  */
+//import 'react-native-gesture-handler';
 
 import React from 'react';
 import { StatusBar, useColorScheme } from 'react-native';
@@ -17,12 +18,20 @@ import UserSignup from './src/screens/UserSignup';
 import PetSignup from './src/screens/PetSignup';
 import TabNavigator from './src/navigation/TabBar';
 import AnimalDetailScreen from './src/screens/AnimalDetailScreen';
+import SymptomResultScreen from './src/screens/SymptomResultScreen';
+import EyeDiagnosisScreen from './src/screens/EyeDiagnosisScreen';
+import UrineDiagnosisScreen from './src/screens/UrineDiagnosisScreen';
+
+
+
+
 
 export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   OrdinaryLogin: undefined;
   OrdinarySignup: undefined;
+  SymptomResult: undefined;
   UserSignup: {
     email: string;
     password: string;
@@ -69,6 +78,10 @@ function App() {
           <Stack.Screen name="PetSignup" component={PetSignup} />
           <Stack.Screen name="Main" component={TabNavigator} />
           <Stack.Screen name="AnimalDetail" component={AnimalDetailScreen} />
+          <Stack.Screen name="SymptomResult" component={SymptomResultScreen} />
+          <Stack.Screen name="EyeDiagnosis" component={EyeDiagnosisScreen} />
+          <Stack.Screen name="UrineDiagnosis" component={UrineDiagnosisScreen} />
+
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

@@ -1,0 +1,1 @@
+ninja: Entering directory `/Users/seoyoung/Desktop/캡스톤 디자인 2025/frontend/android/app/.cxx/Debug/6u2c1q3v/x86_64'
