@@ -20,6 +20,7 @@ import AnimalDetailScreen from './src/screens/AnimalDetailScreen';
 
 export type RootStackParamList = {
   Login: undefined;
+  Home: undefined;
   OrdinaryLogin: undefined;
   OrdinarySignup: undefined;
   UserSignup: {
