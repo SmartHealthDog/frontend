@@ -19,7 +19,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   text,
   onPress,
   disabled = false,
-  width = 310,
+  width = 350,
 }) => {
   return (
     <TouchableOpacity
@@ -38,7 +38,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    width: 310,
+    width: 350,
     height: 55,
     paddingHorizontal: 16,
     flexDirection: 'column',
