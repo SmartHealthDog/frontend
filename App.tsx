@@ -21,7 +21,10 @@ import AnimalDetailScreen from './src/screens/AnimalDetailScreen';
 import SymptomResultScreen from './src/screens/SymptomResultScreen';
 import EyeDiagnosisScreen from './src/screens/EyeDiagnosisScreen';
 import UrineDiagnosisScreen from './src/screens/UrineDiagnosisScreen';
-
+import MyPageScreen from './src/screens/MyPageScreen';
+import MBTIScreen from './src/screens/MBTIScreen';
+import PetEditScreen from './src/screens/PetEditScreen';
+import ProfileEditScreen from './src/screens/ProfileEditScreen';
 
 
 
@@ -32,6 +35,10 @@ export type RootStackParamList = {
   OrdinaryLogin: undefined;
   OrdinarySignup: undefined;
   SymptomResult: undefined;
+  MyPage: undefined;
+  MBTIScreen: undefined; 
+  PetEdit: undefined; 
+  ProfileEdit: undefined;
   UserSignup: {
     email: string;
     password: string;
@@ -81,6 +88,12 @@ function App() {
           <Stack.Screen name="SymptomResult" component={SymptomResultScreen} />
           <Stack.Screen name="EyeDiagnosis" component={EyeDiagnosisScreen} />
           <Stack.Screen name="UrineDiagnosis" component={UrineDiagnosisScreen} />
+          <Stack.Screen name="MyPage" component={MyPageScreen} />
+          <Stack.Screen name="MBTIScreen" component={MBTIScreen} />
+          <Stack.Screen name="PetEdit" component={PetEditScreen} />
+          <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+
+
 
         </Stack.Navigator>
       </NavigationContainer>
