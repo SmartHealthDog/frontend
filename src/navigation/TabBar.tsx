@@ -5,7 +5,7 @@ import { Image, Text, Platform } from 'react-native';
 import HomeScreen from '../screens/HomeScreen';
 import WalkScreen from '../screens/WalkScreen';
 import HealthScreen from '../screens/HealthScreen';
-import MyScreen from '../screens/MyScreen';
+import MyScreen from '../screens/MyPageScreen';
 import AdoptScreen from '../screens/AdoptScreen';
 
 const Tab = createBottomTabNavigator();
