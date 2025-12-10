@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -12,12 +12,16 @@ import {
   Dimensions,
   Alert,
   Clipboard,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import Header from '../components/Header';
 import CustomButton from '../components/CustomButton';
+import WebView from 'react-native-webview';
+import Geolocation from 'react-native-geolocation-service';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -26,6 +30,7 @@ type TabType = '보호소 소개' | '입양 홍보';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const INITIAL_BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT - 200;
 const MAX_BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT - 100;
+const KAKAO_APP_KEY = '888616c23f4ad02ee8c227411fa945dd';
 
 interface ShelterInfo {
   name: string;
@@ -110,6 +115,10 @@ export default function AdoptScreen() {
   const [showPetTypeModal, setShowPetTypeModal] = useState(false);
   const [selectedShelter, setSelectedShelter] = useState<ShelterInfo | null>(null);
   const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number }>({
+    lat: 37.5665,
+    lng: 126.9780,
+  });
   
   const bottomSheetHeight = useRef(new Animated.Value(INITIAL_BOTTOM_SHEET_HEIGHT)).current;
   const bottomSheetY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
@@ -122,6 +131,47 @@ export default function AdoptScreen() {
       setSelectedPetType('모두');
     }, [])
   );
+
+  // 안드로이드 위치 권한 요청 + 현재 위치 가져오기
+  useEffect(() => {
+    const requestLocationPermission = async () => {
+      if (Platform.OS !== 'android') return;
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: '위치 권한 요청',
+            message: '현재 위치를 표시하려면 위치 권한이 필요합니다.',
+            buttonPositive: '확인',
+          }
+        );
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          Geolocation.getCurrentPosition(
+            (position: { coords: { latitude: number; longitude: number } }) => {
+              setCurrentLocation({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              });
+            },
+            (error: unknown) => {
+              console.log('위치 조회 실패', error);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 30000,
+              forceRequestLocation: true,
+            }
+          );
+        }
+      } catch (error) {
+        console.log('위치 권한 요청 실패', error);
+      }
+    };
+
+    requestLocationPermission();
+  }, []);
 
   // 지역 선택에 따른 재검색 버튼 간격 계산
   const getRefreshButtonMargin = () => {
@@ -212,6 +262,36 @@ export default function AdoptScreen() {
     }
   };
 
+  const mapHtml = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
+        <style>
+          html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+          #map { width: 100%; height: 100%; }
+        </style>
+        <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false"></script>
+      </head>
+      <body>
+        <div id="map"></div>
+        <script>
+          kakao.maps.load(function() {
+            var center = new kakao.maps.LatLng(${currentLocation.lat}, ${currentLocation.lng});
+            var map = new kakao.maps.Map(document.getElementById('map'), {
+              center: center,
+              level: 3
+            });
+            new kakao.maps.Marker({
+              position: center,
+              map: map
+            });
+          });
+        </script>
+      </body>
+    </html>
+  `;
+
   return (
     <View style={styles.container}>
       {/* 헤더 */}
@@ -267,7 +347,16 @@ export default function AdoptScreen() {
             {/* 하위 메뉴 1: 나와 가까운 보호소 */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>나와 가까운 보호소</Text>
-              <View style={styles.miniMapContainer} />
+              <View style={styles.miniMapContainer}>
+                <WebView
+                  originWhitelist={['*']}
+                  source={{ html: mapHtml }}
+                  style={styles.miniMap}
+                  javaScriptEnabled
+                  domStorageEnabled
+                  scrollEnabled={false}
+                />
+              </View>
             </View>
 
             {/* 하위 메뉴 2: 지역구별 검색 */}
@@ -737,6 +826,10 @@ const styles = StyleSheet.create({
     borderColor: '#D0D0D0',
     borderRadius: 4,
     alignSelf: 'center',
+    overflow: 'hidden',
+  },
+  miniMap: {
+    flex: 1,
   },
   searchButtonsContainer: {
     flexDirection: 'row',
