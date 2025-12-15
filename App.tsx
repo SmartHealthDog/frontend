@@ -25,6 +25,7 @@ import MyPageScreen from './src/screens/MyPageScreen';
 import MBTIScreen from './src/screens/MBTIScreen';
 import PetEditScreen from './src/screens/PetEditScreen';
 import ProfileEditScreen from './src/screens/ProfileEditScreen';
+import WalkLogDetailScreen from './src/screens/WalkLogDetailScreen';
 
 
 
@@ -35,6 +36,8 @@ export type RootStackParamList = {
   OrdinaryLogin: undefined;
   OrdinarySignup: undefined;
   SymptomResult: undefined;
+  EyeDiagnosis: undefined;
+  UrineDiagnosis: undefined;
   MyPage: undefined;
   MBTIScreen: undefined; 
   PetEdit: undefined; 
@@ -59,6 +62,18 @@ export type RootStackParamList = {
       age: string;
       location: string;
       image: any;
+    };
+  };
+  WalkLogDetail: {
+    record: {
+      id: number;
+      petName: string;
+      petImage: any;
+      date: string;
+      distance: string;
+      duration: string;
+      startTime?: string;
+      endTime?: string;
     };
   };
 };
@@ -92,6 +107,7 @@ function App() {
           <Stack.Screen name="MBTIScreen" component={MBTIScreen} />
           <Stack.Screen name="PetEdit" component={PetEditScreen} />
           <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+          <Stack.Screen name="WalkLogDetail" component={WalkLogDetailScreen} />
 
 
 

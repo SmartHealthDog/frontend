@@ -1,7 +1,20 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+type WalkRecord = {
+  id: number;
+  petName: string;
+  petImage: any;
+  date: string;
+  distance: string;
+  duration: string;
+  startTime: string;
+};
 
 // 산책 팁 더미데이터 (20자 이내)
 const WALK_TIPS = [
@@ -13,57 +26,154 @@ const WALK_TIPS = [
 ];
 
 // 산책 기록 더미데이터
-const WALK_RECORDS = [
+const WALK_RECORDS: WalkRecord[] = [
   {
     id: 1,
     petName: '뽀삐',
     petImage: require('../assets/img_adoptDog.png'),
-    date: '2025.11.16',
+    date: '2025.12.16',
     distance: '2.00km',
     duration: '00 : 10 : 00',
+    startTime: '09:00',
   },
   {
     id: 2,
     petName: '나비',
     petImage: require('../assets/img_adoptCat.png'),
-    date: '2025.11.15',
+    date: '2025.12.16',
     distance: '1.50km',
     duration: '00 : 08 : 30',
+    startTime: '19:20',
   },
   {
     id: 3,
     petName: '뽀삐',
     petImage: require('../assets/img_adoptDog.png'),
-    date: '2025.11.14',
+    date: '2025.12.15',
     distance: '3.20km',
     duration: '00 : 25 : 00',
+    startTime: '07:30',
   },
   {
     id: 4,
     petName: '나비',
     petImage: require('../assets/img_adoptCat.png'),
-    date: '2025.11.13',
+    date: '2025.12.15', // 동일 날짜 다른 반려동물
+    distance: '2.40km',
+    duration: '00 : 18 : 00',
+    startTime: '20:10',
+  },
+  {
+    id: 5,
+    petName: '뽀삐',
+    petImage: require('../assets/img_adoptDog.png'),
+    date: '2025.12.14',
     distance: '1.80km',
     duration: '00 : 12 : 00',
+    startTime: '06:50',
+  },
+  {
+    id: 6,
+    petName: '나비',
+    petImage: require('../assets/img_adoptCat.png'),
+    date: '2025.12.14',
+    distance: '3.10km',
+    duration: '00 : 25 : 00',
+    startTime: '18:00',
+  },
+  {
+    id: 7,
+    petName: '뽀삐',
+    petImage: require('../assets/img_adoptDog.png'),
+    date: '2025.12.13',
+    distance: '2.20km',
+    duration: '00 : 20 : 30',
+    startTime: '05:40',
+  },
+  {
+    id: 8,
+    petName: '나비',
+    petImage: require('../assets/img_adoptCat.png'),
+    date: '2025.12.12',
+    distance: '1.00km',
+    duration: '00 : 09 : 00',
+    startTime: '21:10',
+  },
+  {
+    id: 9,
+    petName: '뽀삐',
+    petImage: require('../assets/img_adoptDog.png'),
+    date: '2025.12.11',
+    distance: '4.70km',
+    duration: '00 : 39 : 30',
+    startTime: '17:05',
+  },
+  {
+    id: 10,
+    petName: '나비',
+    petImage: require('../assets/img_adoptCat.png'),
+    date: '2025.12.10',
+    distance: '1.50km',
+    duration: '00 : 08 : 30',
+    startTime: '08:15',
   },
 ];
 
-// 요일별 산책 그래프 더미데이터 (각 요일별 산책량)
-const WEEKLY_DATA = [
-  { day: '일', pet1: 30, pet2: 20 },
-  { day: '월', pet1: 50, pet2: 40 },
-  { day: '화', pet1: 20, pet2: 60 },
-  { day: '수', pet1: 70, pet2: 30 },
-  { day: '목', pet1: 40, pet2: 50 },
-  { day: '금', pet1: 60, pet2: 20 },
-  { day: '토', pet1: 80, pet2: 40 },
-];
+const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+// 각 반려동물의 대표 색상 (요일별 그래프와 동일하게 매핑)
+const PET_COLORS: Record<string, string> = {
+  '뽀삐': '#6665DD', // pet1 색상
+  '나비': '#74BC8C', // pet2 색상
+};
+
+const getPetColor = (petName: string) => PET_COLORS[petName] ?? '#6665DD';
+const PET_BADGE_BG_COLORS: Record<string, string> = {
+  '뽀삐': '#EFF1FF',
+  '나비': '#E8F6EE',
+};
+const getPetBadgeColor = (petName: string) => PET_BADGE_BG_COLORS[petName] ?? '#EFF1FF';
+
+const parseDistanceKm = (distanceText: string) => {
+  const numeric = parseFloat(distanceText.replace(/[^0-9.]/g, ''));
+  return Number.isFinite(numeric) ? numeric : 0;
+};
+
+const getDayLabel = (dateText: string) => {
+  const normalized = dateText.replace(/\./g, '-');
+  const date = new Date(normalized);
+  const dayIndex = date.getDay();
+  return DAYS[dayIndex] ?? '일';
+};
 
 export default function WalkScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   // 랜덤 산책 팁 선택
   const randomTip = useMemo(() => {
     const randomIndex = Math.floor(Math.random() * WALK_TIPS.length);
     return WALK_TIPS[randomIndex];
+  }, []);
+
+  // 산책 기록을 기반으로 요일별 산책 그래프 데이터 생성 (거리 총합 km)
+  const weeklyData = useMemo(() => {
+    const totals: Record<string, { [pet: string]: number }> = {};
+
+    DAYS.forEach((day) => {
+      totals[day] = {};
+    });
+
+    WALK_RECORDS.forEach((record) => {
+      const day = getDayLabel(record.date);
+      const distance = parseDistanceKm(record.distance);
+      totals[day][record.petName] = (totals[day][record.petName] ?? 0) + distance;
+    });
+
+    return DAYS.map((day) => ({
+      day,
+      pet1: totals[day]['뽀삐'] ?? 0,
+      pet2: totals[day]['나비'] ?? 0,
+    }));
   }, []);
 
   return (
@@ -95,12 +205,15 @@ export default function WalkScreen() {
         <Text style={styles.graphTitle}>요일별 산책 그래프</Text>
         
         <View style={styles.graphContainer}>
-          {WEEKLY_DATA.map((item, index) => {
+          {weeklyData.map((item, index) => {
             const totalHeight = item.pet1 + item.pet2;
             const maxHeight = 120; // 최대 막대 높이
-            const scaledTotal = (totalHeight / 120) * maxHeight;
-            const scaledPet1 = (item.pet1 / totalHeight) * scaledTotal;
-            const scaledPet2 = (item.pet2 / totalHeight) * scaledTotal;
+            const scaledTotal = totalHeight > 0 ? (totalHeight / 5) * (maxHeight / 2) : 0; // km 단위, 적당히 스케일링
+            const scaledPet1 = totalHeight > 0 ? (item.pet1 / totalHeight) * scaledTotal : 0;
+            const scaledPet2 = totalHeight > 0 ? (item.pet2 / totalHeight) * scaledTotal : 0;
+            const hasPet1 = scaledPet1 > 0;
+            const hasPet2 = scaledPet2 > 0;
+            const barRadius = 4;
             
             return (
               <View key={index} style={styles.barColumn}>
@@ -111,8 +224,10 @@ export default function WalkScreen() {
                       {
                         height: scaledPet1,
                         backgroundColor: '#6665DD',
-                        borderTopLeftRadius: 4,
-                        borderTopRightRadius: 4,
+                        borderTopLeftRadius: barRadius,
+                        borderTopRightRadius: barRadius,
+                        borderBottomLeftRadius: hasPet2 ? 0 : barRadius,
+                        borderBottomRightRadius: hasPet2 ? 0 : barRadius,
                       },
                     ]}
                   />
@@ -122,8 +237,10 @@ export default function WalkScreen() {
                       {
                         height: scaledPet2,
                         backgroundColor: '#74BC8C',
-                        borderBottomLeftRadius: 4,
-                        borderBottomRightRadius: 4,
+                        borderBottomLeftRadius: barRadius,
+                        borderBottomRightRadius: barRadius,
+                        borderTopLeftRadius: hasPet1 ? 0 : barRadius,
+                        borderTopRightRadius: hasPet1 ? 0 : barRadius,
                       },
                     ]}
                   />
@@ -143,23 +260,33 @@ export default function WalkScreen() {
           showsVerticalScrollIndicator={false}
         >
           {WALK_RECORDS.map((record) => (
-            <View key={record.id} style={styles.recordCard}>
-              <Image source={record.petImage} style={styles.petImage} />
-              <View style={styles.recordInfo}>
-                <View style={styles.petNameBadge}>
-                  <Text style={styles.petNameText}>{record.petName}</Text>
+            <TouchableOpacity
+              key={record.id}
+              activeOpacity={0.9}
+              onPress={() => navigation.navigate('WalkLogDetail', { record })}
+            >
+              <View style={styles.recordCard}>
+                <Image source={record.petImage} style={styles.petImage} />
+                <View style={styles.recordInfo}>
+                  <View style={[styles.petNameBadge, { backgroundColor: getPetBadgeColor(record.petName) }]}>
+                    <Text style={[styles.petNameText, { color: getPetColor(record.petName) }]}>
+                      {record.petName}
+                    </Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>산책일시</Text>
+                    <Text style={styles.infoValue}>{record.date}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>이동거리</Text>
+                    <Text style={styles.infoValue}>{record.distance}</Text>
+                  </View>
+                  <Text style={[styles.durationText, { color: getPetColor(record.petName) }]}>
+                    {record.duration}
+                  </Text>
                 </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>산책일시</Text>
-                  <Text style={styles.infoValue}>{record.date}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>이동거리</Text>
-                  <Text style={styles.infoValue}>{record.distance}</Text>
-                </View>
-                <Text style={styles.durationText}>{record.duration}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
@@ -341,7 +468,6 @@ const styles = StyleSheet.create({
   },
 
   petNameText: {
-    color: '#6665DD',
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
@@ -367,7 +493,6 @@ const styles = StyleSheet.create({
   },
 
   durationText: {
-    color: '#6665DD',
     fontSize: 24,
     fontWeight: '600',
     marginTop: 4,
