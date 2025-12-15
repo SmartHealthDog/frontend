@@ -918,7 +918,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   dragHandle: {
-    width: 32,
+    width: 40,
     height: 4,
     backgroundColor: '#B3B6B8',
     borderRadius: 2,

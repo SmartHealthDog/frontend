@@ -26,6 +26,7 @@ import MBTIScreen from './src/screens/MBTIScreen';
 import PetEditScreen from './src/screens/PetEditScreen';
 import ProfileEditScreen from './src/screens/ProfileEditScreen';
 import WalkLogDetailScreen from './src/screens/WalkLogDetailScreen';
+import WalkWeeklyReportScreen from './src/screens/WalkWeeklyReportScreen';
 
 
 
@@ -76,6 +77,7 @@ export type RootStackParamList = {
       endTime?: string;
     };
   };
+  WalkWeeklyReport: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -108,6 +110,7 @@ function App() {
           <Stack.Screen name="PetEdit" component={PetEditScreen} />
           <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
           <Stack.Screen name="WalkLogDetail" component={WalkLogDetailScreen} />
+          <Stack.Screen name="WalkWeeklyReport" component={WalkWeeklyReportScreen} />
 
 
 
