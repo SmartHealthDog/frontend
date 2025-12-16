@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, SafeAreaView } from "react-native";
 
-const MBTIScreen = () => {
+const GameScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>냥멍BTI 테스트</Text>
+      <Text style={styles.title}>멍냥 성향테스트</Text>
 
       <Text style={styles.desc}>
         앞으로 여기서 반려동물 성격 유형을 알아보는{"\n"}
@@ -14,7 +14,7 @@ const MBTIScreen = () => {
   );
 };
 
-export default MBTIScreen;
+export default GameScreen;
 
 const styles = StyleSheet.create({
   container: {

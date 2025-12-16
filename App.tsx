@@ -22,7 +22,7 @@ import SymptomResultScreen from './src/screens/SymptomResultScreen';
 import EyeDiagnosisScreen from './src/screens/EyeDiagnosisScreen';
 import UrineDiagnosisScreen from './src/screens/UrineDiagnosisScreen';
 import MyPageScreen from './src/screens/MyPageScreen';
-import MBTIScreen from './src/screens/MBTIScreen';
+import GameScreen from './src/screens/GameScreen';
 import PetEditScreen from './src/screens/PetEditScreen';
 import ProfileEditScreen from './src/screens/ProfileEditScreen';
 import WalkLogDetailScreen from './src/screens/WalkLogDetailScreen';
@@ -40,7 +40,7 @@ export type RootStackParamList = {
   EyeDiagnosis: undefined;
   UrineDiagnosis: undefined;
   MyPage: undefined;
-  MBTIScreen: undefined; 
+  GameScreen: undefined; 
   PetEdit: undefined; 
   ProfileEdit: undefined;
   UserSignup: {
@@ -106,7 +106,7 @@ function App() {
           <Stack.Screen name="EyeDiagnosis" component={EyeDiagnosisScreen} />
           <Stack.Screen name="UrineDiagnosis" component={UrineDiagnosisScreen} />
           <Stack.Screen name="MyPage" component={MyPageScreen} />
-          <Stack.Screen name="MBTIScreen" component={MBTIScreen} />
+          <Stack.Screen name="GameScreen" component={GameScreen} />
           <Stack.Screen name="PetEdit" component={PetEditScreen} />
           <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
           <Stack.Screen name="WalkLogDetail" component={WalkLogDetailScreen} />
