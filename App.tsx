@@ -25,6 +25,8 @@ import MyPageScreen from './src/screens/MyPageScreen';
 import MBTIScreen from './src/screens/MBTIScreen';
 import PetEditScreen from './src/screens/PetEditScreen';
 import ProfileEditScreen from './src/screens/ProfileEditScreen';
+import WalkLogDetailScreen from './src/screens/WalkLogDetailScreen';
+import WalkWeeklyReportScreen from './src/screens/WalkWeeklyReportScreen';
 
 
 
@@ -35,6 +37,8 @@ export type RootStackParamList = {
   OrdinaryLogin: undefined;
   OrdinarySignup: undefined;
   SymptomResult: undefined;
+  EyeDiagnosis: undefined;
+  UrineDiagnosis: undefined;
   MyPage: undefined;
   MBTIScreen: undefined; 
   PetEdit: undefined; 
@@ -61,6 +65,19 @@ export type RootStackParamList = {
       image: any;
     };
   };
+  WalkLogDetail: {
+    record: {
+      id: number;
+      petName: string;
+      petImage: any;
+      date: string;
+      distance: string;
+      duration: string;
+      startTime?: string;
+      endTime?: string;
+    };
+  };
+  WalkWeeklyReport: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -92,6 +109,8 @@ function App() {
           <Stack.Screen name="MBTIScreen" component={MBTIScreen} />
           <Stack.Screen name="PetEdit" component={PetEditScreen} />
           <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+          <Stack.Screen name="WalkLogDetail" component={WalkLogDetailScreen} />
+          <Stack.Screen name="WalkWeeklyReport" component={WalkWeeklyReportScreen} />
 
 
 
