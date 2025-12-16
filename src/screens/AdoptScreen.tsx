@@ -30,7 +30,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type TabType = '보호소 소개' | '입양 홍보';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const INITIAL_BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT - 200;
+const INITIAL_BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT - 210;
 const MAX_BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT - 100;
 const KAKAO_APP_KEY = 'e65e93f752b1590bf9b8be83566dd5b6';
 
@@ -47,6 +47,8 @@ interface ShelterInfo {
 }
 
 interface AnimalInfo {
+  id: string;
+  name: string;
   type: '강아지' | '고양이';
   tags: string[];
   breed: string;
@@ -74,6 +76,109 @@ const DISTRICTS: { [key: string]: string[] } = {
 
 // 반려동물 타입 데이터
 const PET_TYPES = ['모두', '강아지', '고양이'];
+
+const ANIMALS: AnimalInfo[] = [
+  {
+    id: 'd1',
+    name: '보리',
+    type: '강아지',
+    tags: ['공고중', '수컷', '활발'],
+    breed: '[개] 믹스견',
+    age: '8개월(추정)',
+    location: '양천구',
+    image: require('../assets/img_adoptDog.png'),
+  },
+  {
+    id: 'd2',
+    name: '몽실',
+    type: '강아지',
+    tags: ['공고중', '암컷', '순둥'],
+    breed: '[개] 푸들 믹스',
+    age: '2살(추정)',
+    location: '강남구',
+    image: require('../assets/img_adoptDog.png'),
+  },
+  {
+    id: 'd3',
+    name: '초코',
+    type: '강아지',
+    tags: ['공고중', '수컷'],
+    breed: '[개] 닥스훈트',
+    age: '1살(추정)',
+    location: '수성구',
+    image: require('../assets/img_adoptDog.png'),
+  },
+  {
+    id: 'd4',
+    name: '콩이',
+    type: '강아지',
+    tags: ['공고중', '암컷', '소형'],
+    breed: '[개] 포메라니안',
+    age: '5살(추정)',
+    location: '해운대구',
+    image: require('../assets/img_adoptDog.png'),
+  },
+  {
+    id: 'd5',
+    name: '바다',
+    type: '강아지',
+    tags: ['공고중', '수컷', '중형'],
+    breed: '[개] 진돗개 믹스',
+    age: '3살(추정)',
+    location: '부평구',
+    image: require('../assets/img_adoptDog.png'),
+  },
+  {
+    id: 'c1',
+    name: '하늘',
+    type: '고양이',
+    tags: ['공고중', '수컷', '온순'],
+    breed: '[묘] 코리안숏헤어',
+    age: '6개월(추정)',
+    location: '마포구',
+    image: require('../assets/img_adoptCat.png'),
+  },
+  {
+    id: 'c2',
+    name: '라떼',
+    type: '고양이',
+    tags: ['공고중', '암컷', '활발'],
+    breed: '[묘] 샴 믹스',
+    age: '1살(추정)',
+    location: '용인시',
+    image: require('../assets/img_adoptCat.png'),
+  },
+  {
+    id: 'c3',
+    name: '두리',
+    type: '고양이',
+    tags: ['공고중', '수컷'],
+    breed: '[묘] 러시안블루',
+    age: '2살(추정)',
+    location: '연수구',
+    image: require('../assets/img_adoptCat.png'),
+  },
+  {
+    id: 'c4',
+    name: '밀크',
+    type: '고양이',
+    tags: ['공고중', '암컷', '순둥'],
+    breed: '[묘] 페르시안',
+    age: '4살(추정)',
+    location: '성남시',
+    image: require('../assets/img_adoptCat.png'),
+  },
+  {
+    id: 'c5',
+    name: '밤비',
+    type: '고양이',
+    tags: ['공고중', '수컷', '호기심많음'],
+    breed: '[묘] 아비시니안',
+    age: '9개월(추정)',
+    location: '달서구',
+    image: require('../assets/img_adoptCat.png'),
+  },
+];
 
 const SHELTERS: ShelterInfo[] = [
   {
@@ -245,6 +350,7 @@ const SHELTERS: ShelterInfo[] = [
 
 export default function AdoptScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const contentScrollRef = useRef<ScrollView>(null);
   const [activeTab, setActiveTab] = useState<TabType>('보호소 소개');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('');
@@ -427,6 +533,19 @@ export default function AdoptScreen() {
     setSelectedDistrict('');
   }, []);
 
+  const handleTabChange = useCallback((tab: TabType) => {
+    setActiveTab(tab);
+    contentScrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, []);
+
+  const filteredAnimals = useMemo(() => {
+    const list =
+      selectedPetType === '모두'
+        ? ANIMALS
+        : ANIMALS.filter((animal) => animal.type === selectedPetType);
+    return [...list].sort(() => Math.random() - 0.5);
+  }, [selectedPetType]);
+
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -541,7 +660,7 @@ export default function AdoptScreen() {
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={styles.tabItem}
-          onPress={() => setActiveTab('보호소 소개')}
+          onPress={() => handleTabChange('보호소 소개')}
         >
           <Text
             style={[
@@ -561,7 +680,7 @@ export default function AdoptScreen() {
 
         <TouchableOpacity
           style={styles.tabItem}
-          onPress={() => setActiveTab('입양 홍보')}
+          onPress={() => handleTabChange('입양 홍보')}
         >
           <Text
             style={[
@@ -581,7 +700,10 @@ export default function AdoptScreen() {
       </View>
 
       {/* 탭 내용 */}
-      <ScrollView style={styles.contentContainer}>
+      <ScrollView
+        style={styles.contentContainer}
+        ref={contentScrollRef}
+      >
         {activeTab === '보호소 소개' ? (
           <View style={styles.shelterContent}>
             {/* 하위 메뉴 1: 나와 가까운 보호소 */}
@@ -718,38 +840,9 @@ export default function AdoptScreen() {
 
             {/* 동물 카드 리스트 */}
             <View style={styles.animalListContainer}>
-              {(() => {
-                // 더미 데이터 생성
-                const dogs: AnimalInfo[] = [1, 2, 3, 4, 5].map((item) => ({
-                  type: '강아지' as const,
-                  tags: ['공고중', '수컷'],
-                  breed: '[개] 믹스견',
-                  age: '3개월(추정)',
-                  location: '양천구',
-                  image: require('../assets/img_adoptDog.png'),
-                }));
-
-                const cats: AnimalInfo[] = [1, 2, 3, 4, 5].map((item) => ({
-                  type: '고양이' as const,
-                  tags: ['공고중', '수컷'],
-                  breed: '[묘] 코리안숏헤어',
-                  age: '3개월(추정)',
-                  location: '양천구',
-                  image: require('../assets/img_adoptCat.png'),
-                }));
-
-                // 전체 동물 리스트
-                const allAnimals = [...dogs, ...cats];
-
-                // 선택된 타입에 따라 필터링
-                const filteredAnimals = 
-                  selectedPetType === '모두' 
-                    ? allAnimals
-                    : allAnimals.filter(animal => animal.type === selectedPetType);
-
-                return filteredAnimals.map((animal, index) => (
+                {filteredAnimals.map((animal) => (
                   <TouchableOpacity
-                    key={`${animal.type}-${index}`}
+                    key={animal.id}
                     style={styles.animalCard}
                     onPress={() => navigation.navigate('AnimalDetail', { animalData: animal })}
                     activeOpacity={0.7}
@@ -788,8 +881,7 @@ export default function AdoptScreen() {
                       </View>
                     </View>
                   </TouchableOpacity>
-                ));
-              })()}
+                ))}
             </View>
           </View>
         )}
@@ -1325,6 +1417,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 2,
     paddingHorizontal: 6,
     borderRadius: 32,
@@ -1337,6 +1431,7 @@ const styles = StyleSheet.create({
     color: '#0081D5',
     fontSize: 12,
     fontWeight: '500',
+    lineHeight: 16,
   },
   detailsContainer: {
     gap: 4,
