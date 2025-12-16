@@ -20,6 +20,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import Header from '../components/Header';
+import DropdownButton from '../components/DropdownButton';
 import CustomButton from '../components/CustomButton';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
 import Geolocation from 'react-native-geolocation-service';
@@ -39,6 +40,10 @@ interface ShelterInfo {
   address: string;
   phone: string;
   image: any;
+  region: string;
+  district: string;
+  openStatus: string;
+  openHours: string;
 }
 
 interface AnimalInfo {
@@ -50,60 +55,193 @@ interface AnimalInfo {
   image: any;
 }
 
-// 지역 데이터
+// 지역/군구 더미데이터 (HealthScreen과 동일하게 유지)
 const REGIONS = [
   '서울특별시',
-  '부산광역시',
-  '인천광역시',
-  '대구광역시',
-  '대전광역시',
-  '광주광역시',
-  '울산광역시',
-  '세종특별자치시',
   '경기도',
-  '충청북도',
-  '충청남도',
-  '전라남도',
-  '경상북도',
-  '경상남도',
-  '강원특별자치도',
-  '전북특별자치도',
-  '제주특별자치도',
+  '인천광역시',
+  '부산광역시',
+  '대구광역시',
 ];
 
-// 군/구 데이터 (현재는 서울특별시만)
 const DISTRICTS: { [key: string]: string[] } = {
-  '서울특별시': [
-    '종로구',
-    '중구',
-    '용산구',
-    '성동구',
-    '광진구',
-    '동대문구',
-    '중랑구',
-    '성북구',
-    '강북구',
-    '도봉구',
-    '노원구',
-    '은평구',
-    '서대문구',
-    '마포구',
-    '양천구',
-    '강서구',
-    '구로구',
-    '금천구',
-    '영등포구',
-    '동작구',
-    '관악구',
-    '서초구',
-    '강남구',
-    '송파구',
-    '강동구',
-  ],
+  '서울특별시': ['양천구', '강남구', '서초구', '구로구', '마포구'],
+  '경기도': ['성남시', '용인시', '수원시'],
+  '인천광역시': ['미추홀구', '연수구', '부평구'],
+  '부산광역시': ['해운대구', '부산진구'],
+  '대구광역시': ['수성구', '달서구'],
 };
 
 // 반려동물 타입 데이터
 const PET_TYPES = ['모두', '강아지', '고양이'];
+
+const SHELTERS: ShelterInfo[] = [
+  {
+    name: '행복보호소',
+    rating: 4.6,
+    address: '서울특별시 양천구 목동로 120',
+    phone: '02-2010-0001',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '서울특별시',
+    district: '양천구',
+    openStatus: '영업중',
+    openHours: '(월-금) 10:00 - 19:00',
+  },
+  {
+    name: '해피독 센터',
+    rating: 4.8,
+    address: '서울특별시 강남구 테헤란로 420',
+    phone: '02-550-8888',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '서울특별시',
+    district: '강남구',
+    openStatus: '영업중',
+    openHours: '(매일) 09:00 - 21:00',
+  },
+  {
+    name: '서초 동물케어',
+    rating: 4.5,
+    address: '서울특별시 서초구 반포대로 310',
+    phone: '02-345-7755',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '서울특별시',
+    district: '서초구',
+    openStatus: '영업중',
+    openHours: '(화-일) 10:00 - 20:00',
+  },
+  {
+    name: '구로 희망쉼터',
+    rating: 4.2,
+    address: '서울특별시 구로구 디지털로 200',
+    phone: '02-860-2222',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '서울특별시',
+    district: '구로구',
+    openStatus: '영업중',
+    openHours: '(월-토) 09:30 - 18:30',
+  },
+  {
+    name: '마포 러브펫',
+    rating: 4.7,
+    address: '서울특별시 마포구 월드컵북로 44',
+    phone: '02-313-0909',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '서울특별시',
+    district: '마포구',
+    openStatus: '영업중',
+    openHours: '(매일) 10:00 - 22:00',
+  },
+  {
+    name: '성남 해피테일',
+    rating: 4.4,
+    address: '경기도 성남시 분당구 불정로 50',
+    phone: '031-720-3333',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '경기도',
+    district: '성남시',
+    openStatus: '영업중',
+    openHours: '(월-금) 09:30 - 19:00',
+  },
+  {
+    name: '용인 퍼피랜드',
+    rating: 4.3,
+    address: '경기도 용인시 수지구 푸른로 88',
+    phone: '031-520-1122',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '경기도',
+    district: '용인시',
+    openStatus: '영업중',
+    openHours: '(화-일) 10:00 - 20:00',
+  },
+  {
+    name: '수원 케어하우스',
+    rating: 4.6,
+    address: '경기도 수원시 영통구 대학로 100',
+    phone: '031-204-7000',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '경기도',
+    district: '수원시',
+    openStatus: '영업중',
+    openHours: '(매일) 09:00 - 21:00',
+  },
+  {
+    name: '인천 미추홀 케어',
+    rating: 4.1,
+    address: '인천광역시 미추홀구 독배로 15',
+    phone: '032-880-6600',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '인천광역시',
+    district: '미추홀구',
+    openStatus: '영업중',
+    openHours: '(월-토) 10:00 - 19:00',
+  },
+  {
+    name: '연수 반려촌',
+    rating: 4.5,
+    address: '인천광역시 연수구 센트럴로 120',
+    phone: '032-830-0404',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '인천광역시',
+    district: '연수구',
+    openStatus: '영업중',
+    openHours: '(매일) 09:30 - 20:30',
+  },
+  {
+    name: '부평 하트펫',
+    rating: 4.0,
+    address: '인천광역시 부평구 길주로 200',
+    phone: '032-520-7777',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '인천광역시',
+    district: '부평구',
+    openStatus: '영업중',
+    openHours: '(화-일) 10:00 - 21:00',
+  },
+  {
+    name: '해운대 러브펫',
+    rating: 4.6,
+    address: '부산광역시 해운대구 센텀서로 45',
+    phone: '051-740-2020',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '부산광역시',
+    district: '해운대구',
+    openStatus: '영업중',
+    openHours: '(매일) 09:00 - 20:00',
+  },
+  {
+    name: '부산진 해피포즈',
+    rating: 4.3,
+    address: '부산광역시 부산진구 가야대로 610',
+    phone: '051-320-5555',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '부산광역시',
+    district: '부산진구',
+    openStatus: '영업중',
+    openHours: '(월-토) 09:30 - 18:30',
+  },
+  {
+    name: '수성 해피테일',
+    rating: 4.4,
+    address: '대구광역시 수성구 동대구로 320',
+    phone: '053-770-3030',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '대구광역시',
+    district: '수성구',
+    openStatus: '영업중',
+    openHours: '(매일) 10:00 - 21:00',
+  },
+  {
+    name: '달서 퍼피케어',
+    rating: 4.2,
+    address: '대구광역시 달서구 월배로 180',
+    phone: '053-620-0909',
+    image: require('../assets/adopt_placeholder.png'),
+    region: '대구광역시',
+    district: '달서구',
+    openStatus: '영업중',
+    openHours: '(화-일) 10:30 - 20:30',
+  },
+];
 
 export default function AdoptScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -177,18 +315,6 @@ export default function AdoptScreen() {
 
     requestLocationPermission();
   }, []);
-
-  // 지역 선택에 따른 재검색 버튼 간격 계산
-  const getRefreshButtonMargin = () => {
-    const textLength = selectedRegion.length;
-    if (textLength >= 5) {
-      return 100;
-    } else if (textLength >= 3) {
-      return 140;
-    } else {
-      return 150; // 기본값 (선택 안 됨 or 2글자 이하)
-    }
-  };
 
   // 바텀시트 열기
   const openBottomSheet = (shelter: ShelterInfo) => {
@@ -287,6 +413,19 @@ export default function AdoptScreen() {
     setMapLoaded(false);
     setMapError(null);
   }, [currentLocation.lat, currentLocation.lng]);
+
+  const filteredShelters = useMemo(() => {
+    return SHELTERS.filter((shelter) => {
+      if (selectedRegion && shelter.region !== selectedRegion) return false;
+      if (selectedDistrict && shelter.district !== selectedDistrict) return false;
+      return true;
+    });
+  }, [selectedDistrict, selectedRegion]);
+
+  const handleResetFilters = useCallback(() => {
+    setSelectedRegion('');
+    setSelectedDistrict('');
+  }, []);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -488,71 +627,44 @@ export default function AdoptScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>지역구별 검색</Text>
               <View style={styles.searchButtonsContainer}>
-                {/* 지역 버튼 */}
-                <TouchableOpacity
-                  style={styles.dropdownButton}
-                  onPress={() => setShowRegionModal(true)}
-                >
-                  <Text style={styles.dropdownButtonText}>
-                    {selectedRegion || '지역'}
-                  </Text>
-                  <Image
-                    source={require('../assets/icon_arrowDown.png')}
-                    style={styles.dropdownIcon}
+                <View style={styles.dropdownGroup}>
+                  {/* 지역 버튼 */}
+                  <DropdownButton
+                    label={selectedRegion || '지역'}
+                    onPress={() => setShowRegionModal(true)}
+                    style={{ marginRight: 12 }}
                   />
-                </TouchableOpacity>
 
-                {/* 군/구 버튼 */}
-                <TouchableOpacity
-                  style={[
-                    styles.dropdownButton,
-                    !selectedRegion && styles.dropdownButtonDisabled,
-                  ]}
-                  onPress={() => {
-                    if (selectedRegion) {
-                      setShowDistrictModal(true);
-                    }
-                  }}
-                  disabled={!selectedRegion}
-                >
-                  <Text style={styles.dropdownButtonText}>
-                    {selectedDistrict || '군/구'}
-                  </Text>
-                  <Image
-                    source={require('../assets/icon_arrowDown.png')}
-                    style={styles.dropdownIcon}
+                  {/* 군/구 버튼 */}
+                  <DropdownButton
+                    label={selectedDistrict || '군/구'}
+                    onPress={() => {
+                      if (selectedRegion) {
+                        setShowDistrictModal(true);
+                      }
+                    }}
+                    disabled={!selectedRegion}
+                    style={{ marginRight: 12 }}
                   />
-                </TouchableOpacity>
+                </View>
 
                 {/* 재검색 버튼 */}
                 <TouchableOpacity
-                  style={[
-                    styles.refreshButton,
-                    { marginLeft: getRefreshButtonMargin() },
-                  ]}
-                  onPress={() => {
-                    // 재검색 로직 (추후 구현)
-                    console.log('재검색');
-                  }}
+                  style={styles.refreshButton}
+                  onPress={handleResetFilters}
                 >
-                  <Text style={styles.refreshButtonText}>재검색</Text>
+                  <Text style={styles.refreshButtonText}>초기화</Text>
                 </TouchableOpacity>
               </View>
 
               {/* 보호소 카드 리스트 */}
               <View style={styles.shelterListContainer}>
-                {[1, 2, 3, 4, 5].map((item) => {
-                  const shelter: ShelterInfo = {
-                    name: 'ABC 동물병원',
-                    rating: 4.5,
-                    address: '서울시 양천구 신목로 100 2층',
-                    phone: '02-1234-5678',
-                    image: require('../assets/adopt_placeholder.png'),
-                  };
-                  
-                  return (
+                {filteredShelters.length === 0 ? (
+                  <Text style={styles.emptyText}>선택한 조건에 맞는 보호소가 없어요.</Text>
+                ) : (
+                  filteredShelters.map((shelter) => (
                     <TouchableOpacity 
-                      key={item} 
+                      key={shelter.name} 
                       style={styles.shelterCard}
                       onPress={() => openBottomSheet(shelter)}
                       activeOpacity={0.7}
@@ -590,26 +702,18 @@ export default function AdoptScreen() {
                         </View>
                       </View>
                     </TouchableOpacity>
-                  );
-                })}
+                  ))
+                )}
               </View>
             </View>
           </View>
         ) : (
           <View style={styles.adoptContent}>
             <View style={styles.adoptFilterContainer}>
-              <TouchableOpacity
-                style={styles.dropdownButton}
+              <DropdownButton
+                label={selectedPetType}
                 onPress={() => setShowPetTypeModal(true)}
-              >
-                <Text style={styles.dropdownButtonText}>
-                  {selectedPetType}
-                </Text>
-                <Image
-                  source={require('../assets/icon_arrowDown.png')}
-                  style={styles.dropdownIcon}
-                />
-              </TouchableOpacity>
+              />
             </View>
 
             {/* 동물 카드 리스트 */}
@@ -847,10 +951,10 @@ export default function AdoptScreen() {
                       source={require('../assets/icon_openTime.png')}
                       style={styles.infoIcon}
                     />
-                    <View style={styles.infoTextContainer}>
-                      <Text style={styles.infoTextHighlight}>영업중</Text>
-                      <Text style={styles.infoText}>(화) 11:00 - 22:00</Text>
-                    </View>
+                  <View style={styles.infoTextContainer}>
+                    <Text style={styles.infoTextHighlight}>{selectedShelter.openStatus}</Text>
+                    <Text style={styles.infoText}>{selectedShelter.openHours}</Text>
+                  </View>
                   </View>
 
                   {/* 주소 */}
@@ -971,44 +1075,20 @@ const styles = StyleSheet.create({
   searchButtonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
   },
-  dropdownButton: {
+  dropdownGroup: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 6,
-    paddingLeft: 8,
-    paddingRight: 12,
-    justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: '#B3B6B8',
-    marginRight: 12,
-  },
-  dropdownButtonDisabled: {
-    opacity: 0.5,
-  },
-  dropdownButtonText: {
-    color: '#7B7C7D',
-    textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 5,
-    marginRight: 4,
-  },
-  dropdownIcon: {
-    width: 10,
-    height: 10,
   },
   refreshButton: {
     flexDirection: 'row',
-    height: 34,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 25,
+    borderRadius: 30,
     backgroundColor: '#0081D5',
   },
   refreshButtonText: {
@@ -1058,6 +1138,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: 'center',
     paddingBottom: 120,
+  },
+  emptyText: {
+    color: '#7B7C7D',
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 8,
+    textAlign: 'center',
   },
   shelterCard: {
     width: 350,
