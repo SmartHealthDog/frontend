@@ -151,12 +151,13 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
 
             {/* 개발용 임시 버튼 */}
-            <TouchableOpacity 
-              style={styles.devButton} 
+            <TouchableOpacity
               onPress={handleGoToHome}
               disabled={!showLoginForm}
+              activeOpacity={0.7}
+              style={styles.devLinkWrapper}
             >
-              <Text style={styles.devButtonText}>🏠 홈으로 바로가기 (개발용)</Text>
+              <Text style={styles.devLinkText}>로그인 없이 홈으로 가기</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -293,29 +294,15 @@ const styles = StyleSheet.create({
     marginLeft: 11,
     fontFamily: 'Pretendard-Bold',
   },
-  devButton: {
+  devLinkWrapper: {
     marginTop: 30,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 8,
-    // Shadow for iOS
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    // Shadow for Android
-    elevation: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  devButtonText: {
+  devLinkText: {
     fontSize: 14,
+    color: '#0081D5',
     fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    fontFamily: 'Pretendard-SemiBold',
   },
 });
 
