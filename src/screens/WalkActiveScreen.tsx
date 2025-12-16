@@ -8,9 +8,13 @@ import {
   Modal,
   Animated,
   Easing,
+  Platform,
+  PermissionsAndroid,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { WebView } from 'react-native-webview';
+import Geolocation, { GeoPosition } from 'react-native-geolocation-service';
 import { RootStackParamList } from '../../App';
 import CustomButton from '../components/CustomButton';
 
@@ -56,11 +60,17 @@ export default function WalkActiveScreen() {
   const [isPaused, setIsPaused] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
-  const [distanceKm] = useState(0); // 데모용 고정값
+  const [distanceKm, setDistanceKm] = useState(0);
+  const [mapLoadError, setMapLoadError] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const [initialCoord, setInitialCoord] = useState<{ lat: number; lng: number } | null>(null);
 
   const startDateRef = useRef<Date>(new Date());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const badgeAnim = useRef(new Animated.Value(0.6)).current;
+  const watchIdRef = useRef<number | null>(null);
+  const lastCoordRef = useRef<{ lat: number; lng: number } | null>(null);
+  const pauseTrackingRef = useRef(false);
 
   const startDate = startDateRef.current;
 
@@ -107,18 +117,86 @@ export default function WalkActiveScreen() {
     return () => loop.stop();
   }, [badgeAnim]);
 
+  // 위치 권한 요청 (포그라운드) + 위치 추적
+  useEffect(() => {
+    const requestPermission = async () => {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: '위치 권한',
+            message: '산책 거리 측정을 위해 위치 권한이 필요합니다.',
+            buttonNeutral: '나중에',
+            buttonNegative: '취소',
+            buttonPositive: '확인',
+          }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
+      // iOS는 Info.plist 설정 가정
+      return true;
+    };
+
+    const startWatch = async () => {
+      const ok = await requestPermission();
+      if (!ok) return;
+
+      watchIdRef.current = Geolocation.watchPosition(
+        (pos: GeoPosition) => {
+          const { latitude, longitude } = pos.coords;
+          const current = { lat: latitude, lng: longitude };
+          if (!initialCoord) {
+            setInitialCoord(current);
+          }
+          // 일시정지 시 거리 누적 중단, 현재 좌표만 기억
+          if (pauseTrackingRef.current) {
+            lastCoordRef.current = current;
+            return;
+          }
+          if (lastCoordRef.current) {
+            const inc = haversine(lastCoordRef.current, current);
+            setDistanceKm((prev) => prev + inc);
+          }
+          lastCoordRef.current = current;
+        },
+        () => {},
+        {
+          enableHighAccuracy: true,
+          distanceFilter: 1,
+          interval: 2000,
+          fastestInterval: 1000,
+          showsBackgroundLocationIndicator: false,
+        }
+      );
+    };
+
+    startWatch();
+
+    return () => {
+      if (watchIdRef.current !== null) {
+        Geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, [initialCoord, isPaused]);
+
   const handlePauseToggle = () => {
-    setIsPaused((prev) => !prev);
+    setIsPaused((prev) => {
+      const next = !prev;
+      pauseTrackingRef.current = next;
+      return next;
+    });
   };
 
   const handleStop = () => {
     setIsPaused(true);
+    pauseTrackingRef.current = true;
     setShowConfirmModal(true);
   };
 
   const handleConfirmNo = () => {
     setShowConfirmModal(false);
     setIsPaused(false);
+    pauseTrackingRef.current = false;
   };
 
   const handleConfirmYes = () => {
@@ -133,11 +211,86 @@ export default function WalkActiveScreen() {
   const distanceText = useMemo(() => `${distanceKm.toFixed(1)}`, [distanceKm]);
   const timerText = useMemo(() => formatTime(elapsedSeconds), [elapsedSeconds]);
   const resultDuration = useMemo(() => formatDurationMinutes(elapsedSeconds), [elapsedSeconds]);
+  const kakaoHtml = useMemo(() => {
+    const center = initialCoord ?? { lat: 37.5665, lng: 126.9780 }; // 서울 시청 기본값
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0" />
+          <style>
+            html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #E9ECEF; }
+          </style>
+          <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e65e93f752b1590bf9b8be83566dd5b6&autoload=false"></script>
+        </head>
+        <body>
+          <div id="map"></div>
+          <script>
+            (function() {
+              kakao.maps.load(function() {
+                var map = new kakao.maps.Map(document.getElementById('map'), {
+                  center: new kakao.maps.LatLng(${center.lat}, ${center.lng}),
+                  level: 4
+                });
+              });
+            })();
+          </script>
+        </body>
+      </html>
+    `;
+  }, [initialCoord]);
+
+  const haversine = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+    const R = 6371; // km
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLng = Math.sin(dLng / 2);
+    const h =
+      sinDLat * sinDLat +
+      sinDLng * sinDLng * Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+    return R * c;
+  };
+
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
 
   return (
     <View style={styles.container}>
-      {/* 배경 카카오맵 플레이스홀더 */}
-      <View style={styles.mapBackground} />
+      {/* 배경 카카오맵 (WebView) + 실패 시 스켈레톤 */}
+      {mapLoadError ? (
+        <View style={[styles.mapBackground, styles.mapFallback]} />
+      ) : (
+        <WebView
+          key="walk-active-map"
+          originWhitelist={['*']}
+          source={{ html: kakaoHtml }}
+          style={styles.mapBackground}
+          javaScriptEnabled
+          domStorageEnabled
+          cacheEnabled={false}
+          setSupportMultipleWindows={false}
+          thirdPartyCookiesEnabled
+          onLoadStart={() => {
+            setMapReady(false);
+            setMapLoadError(false);
+          }}
+          onLoadEnd={() => setMapReady(true)}
+          onError={() => {
+            if (!mapReady) setMapLoadError(true);
+          }}
+          onHttpError={() => {
+            if (!mapReady) setMapLoadError(true);
+          }}
+          renderError={() => {
+            setMapLoadError(true);
+            return <View style={styles.mapFallback} />;
+          }}
+        />
+      )}
 
       {/* 상단 배지 */}
       <Animated.View style={[styles.statusBadge, { opacity: badgeAnim }]}>
@@ -236,6 +389,9 @@ const styles = StyleSheet.create({
   mapBackground: {
     flex: 1,
     backgroundColor: '#DCE2EA',
+  },
+  mapFallback: {
+    backgroundColor: '#E9ECEF',
   },
   statusBadge: {
     position: 'absolute',

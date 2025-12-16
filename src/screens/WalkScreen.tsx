@@ -18,11 +18,11 @@ const WALK_SHEET_HEIGHT = 420;
 
 // 산책 팁 더미데이터 (20자 이내)
 const WALK_TIPS = [
-  '여름에는 지면 온도 확인이 필수에요!',
-  '산책 후 발바닥 체크는 필수!',
-  '물은 충분히 챙겨가세요!',
-  '저녁 산책은 시원해요!',
-  '간식으로 훈련해보세요!',
+  '여름에는 지면 온도 확인이 필수에요! 🔥',
+  '산책 후 발바닥 체크는 꼭! 🐾',
+  '물은 충분히 챙겨가세요! 💦',
+  '저녁 산책은 시원하답니다! ⭐️',
+  '간식으로 훈련해보세요! 🍖',
 ];
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -338,6 +338,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     marginTop: 15,
+    fontFamily: undefined,
   },
 
   startIconContainer: {
