@@ -27,6 +27,7 @@ import PetEditScreen from './src/screens/PetEditScreen';
 import ProfileEditScreen from './src/screens/ProfileEditScreen';
 import WalkLogDetailScreen from './src/screens/WalkLogDetailScreen';
 import WalkWeeklyReportScreen from './src/screens/WalkWeeklyReportScreen';
+import WalkActiveScreen from './src/screens/WalkActiveScreen';
 
 
 
@@ -78,6 +79,10 @@ export type RootStackParamList = {
     };
   };
   WalkWeeklyReport: undefined;
+  WalkActive: {
+    petName: string;
+    petImage: any;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -111,6 +116,7 @@ function App() {
           <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
           <Stack.Screen name="WalkLogDetail" component={WalkLogDetailScreen} />
           <Stack.Screen name="WalkWeeklyReport" component={WalkWeeklyReportScreen} />
+          <Stack.Screen name="WalkActive" component={WalkActiveScreen} />
 
 
 

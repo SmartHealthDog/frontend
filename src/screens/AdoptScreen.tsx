@@ -365,6 +365,7 @@ export default function AdoptScreen() {
     lng: 126.9780,
   });
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const webViewRef = useRef<WebView>(null);
   const pulseAnim = useRef(new Animated.Value(0.6)).current;
@@ -575,74 +576,26 @@ export default function AdoptScreen() {
           <meta charset="UTF-8" />
           <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
           <style>
-            html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+            html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #E9ECEF; }
             #map { width: 100%; height: 100%; }
           </style>
+          <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false"></script>
         </head>
         <body>
           <div id="map"></div>
           <script>
             (function() {
-              const post = (payload) => {
-                try {
-                  window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(payload));
-                } catch (e) {
-                  // ignore
-                }
-              };
-
-              window.onerror = function(message, source, lineno, colno, error) {
-                post({ type: 'error', message, source, lineno, colno, stack: error && error.stack });
-              };
-
-              // 동적으로 스크립트 로드하여 로드 실패 사유를 잡아낸다.
-              const tryLoad = (useHttps) => {
-                const protocol = useHttps ? 'https:' : 'http:';
-                const src = protocol + '//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false';
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = function() {
-                  try {
-                    if (!(window.kakao && window.kakao.maps)) {
-                      post({ type: 'error', message: 'kakao maps not available after load', src });
-                      return;
-                    }
-                    kakao.maps.load(function() {
-                      post({ type: 'loaded', src });
-                      var center = new kakao.maps.LatLng(${currentLocation.lat}, ${currentLocation.lng});
-                      var map = new kakao.maps.Map(document.getElementById('map'), {
-                        center: center,
-                        level: 3
-                      });
-                      new kakao.maps.Marker({
-                        position: center,
-                        map: map
-                      });
-                    });
-                  } catch (err) {
-                    post({ type: 'error', message: 'load exec error', stack: err && err.stack, src });
-                  }
-                };
-                script.onerror = function(e) {
-                  post({ type: 'error', message: 'kakao maps script load failed', detail: e && e.message, src });
-                  if (useHttps) {
-                    // fall back to http once
-                    tryLoad(false);
-                  }
-                };
-                document.head.appendChild(script);
-              };
-
-              // 사전 연결 테스트
-              fetch('https://dapi.kakao.com/v2/maps/sdk.js', { method: 'HEAD' })
-                .then((res) => {
-                  post({ type: 'prefetch', status: res.status });
-                  tryLoad(true);
-                })
-                .catch((err) => {
-                  post({ type: 'prefetch-error', message: err && err.message });
-                  tryLoad(true);
+              kakao.maps.load(function() {
+                var center = new kakao.maps.LatLng(${currentLocation.lat}, ${currentLocation.lng});
+                var map = new kakao.maps.Map(document.getElementById('map'), {
+                  center: center,
+                  level: 3
                 });
+                new kakao.maps.Marker({
+                  position: center,
+                  map: map
+                });
+              });
             })();
           </script>
         </body>
@@ -720,19 +673,26 @@ export default function AdoptScreen() {
                     domStorageEnabled
                     scrollEnabled={false}
                     mixedContentMode="always"
-                    allowFileAccess
-                    allowUniversalAccessFromFileURLs
-                    onMessage={handleMapMessage}
-                    onError={(e) => {
-                      console.log('WebView load error', e.nativeEvent);
-                      setMapLoaded(false);
-                    }}
-                    onHttpError={(e) => {
-                      console.log('WebView HTTP error', e.nativeEvent);
+                    cacheEnabled={false}
+                    setSupportMultipleWindows={false}
+                    thirdPartyCookiesEnabled
+                    onLoadStart={() => {
+                      setMapReady(false);
                       setMapLoaded(false);
                     }}
                     onLoadEnd={() => {
-                      // if map never loaded via message, keep skeleton
+                      setMapReady(true);
+                      setMapLoaded(true);
+                    }}
+                    onError={() => {
+                      if (!mapReady) setMapLoaded(false);
+                    }}
+                    onHttpError={() => {
+                      if (!mapReady) setMapLoaded(false);
+                    }}
+                    renderError={() => {
+                      setMapLoaded(false);
+                      return <View style={styles.miniMapFallback} />;
                     }}
                   />
                   {!mapLoaded && (
@@ -1155,6 +1115,10 @@ const styles = StyleSheet.create({
   },
   miniMap: {
     flex: 1,
+  },
+  miniMapFallback: {
+    flex: 1,
+    backgroundColor: '#E9ECEF',
   },
   mapSkeleton: {
     position: 'absolute',

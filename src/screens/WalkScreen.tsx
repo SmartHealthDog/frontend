@@ -18,11 +18,11 @@ const WALK_SHEET_HEIGHT = 420;
 
 // 산책 팁 더미데이터 (20자 이내)
 const WALK_TIPS = [
-  '여름에는 지면 온도 확인이 필수에요!',
-  '산책 후 발바닥 체크는 필수!',
-  '물은 충분히 챙겨가세요!',
-  '저녁 산책은 시원해요!',
-  '간식으로 훈련해보세요!',
+  '여름에는 지면 온도 확인이 필수에요! 🔥',
+  '산책 후 발바닥 체크는 꼭! 🐾',
+  '물은 충분히 챙겨가세요! 💦',
+  '저녁 산책은 시원하답니다! ⭐️',
+  '간식으로 훈련해보세요! 🍖',
 ];
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -85,6 +85,13 @@ export default function WalkScreen() {
     }).start(() => {
       setBottomSheetVisible(false);
     });
+  };
+
+  const handleStartWalk = () => {
+    const pet = petOptions.find((p) => p.name === selectedPet);
+    if (!pet) return;
+    closeBottomSheet();
+    navigation.navigate('WalkActive', { petName: pet.name, petImage: pet.image });
   };
 
   // 산책 기록을 기반으로 요일별 산책 그래프 데이터 생성 (거리 총합 km)
@@ -267,7 +274,7 @@ export default function WalkScreen() {
               </View>
 
               <View style={styles.selectionButtonContainer}>
-                <CustomButton text="산책하기" onPress={() => {}} disabled={!selectedPet} width={350} />
+                <CustomButton text="산책하기" onPress={handleStartWalk} disabled={!selectedPet} width={350} />
               </View>
             </View>
           </Animated.View>
@@ -331,6 +338,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     marginTop: 15,
+    fontFamily: undefined,
   },
 
   startIconContainer: {
