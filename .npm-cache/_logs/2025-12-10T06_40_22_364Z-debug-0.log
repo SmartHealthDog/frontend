@@ -1,0 +1,19 @@
+0 verbose cli /opt/homebrew/Cellar/node/24.5.0/bin/node /opt/homebrew/bin/npm
+1 info using npm@11.5.1
+2 info using node@v24.5.0
+3 silly config load:file:/opt/homebrew/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/seojung/Desktop/SmartHealthDog/frontend/.npmrc
+5 silly config load:file:/Users/seojung/.npmrc
+6 silly config load:file:/opt/homebrew/etc/npmrc
+7 verbose title npm install react-native-webview react-native-geolocation-service
+8 verbose argv "install" "react-native-webview" "react-native-geolocation-service"
+9 verbose logfile logs-max:10 dir:/Users/seojung/Desktop/SmartHealthDog/frontend/.npm-cache/_logs/2025-12-10T06_40_22_364Z-
+10 verbose logfile /Users/seojung/Desktop/SmartHealthDog/frontend/.npm-cache/_logs/2025-12-10T06_40_22_364Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose cwd /Users/seojung/Desktop/SmartHealthDog/frontend
+13 verbose os Darwin 24.6.0
+14 verbose node v24.5.0
+15 verbose npm  v11.5.1
+16 verbose exit 1
+17 verbose code 1
+18 error A complete log of this run can be found in: /Users/seojung/Desktop/SmartHealthDog/frontend/.npm-cache/_logs/2025-12-10T06_40_22_364Z-debug-0.log

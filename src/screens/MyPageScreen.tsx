@@ -127,12 +127,11 @@ const MyPageScreen = () => {
 
       <View style={styles.divider} />
 
-      {/* 냥멍 BTI */}
       <TouchableOpacity
         style={styles.btiSection}
-        onPress={() => navigation.navigate("MBTIScreen")}
+        onPress={() => navigation.navigate("GameScreen")}
       >
-        <Text style={styles.btiTitle}>냥멍BTI</Text>
+        <Text style={styles.btiTitle}>멍냥 성향테스트</Text>
         <Text style={styles.btiDesc}>
           나와 가장 성격이 비슷한 강아지, 고양이는?!{"\n"}
           간단한 테스트로 알아보아요
