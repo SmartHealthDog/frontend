@@ -14,6 +14,7 @@ import {
   Clipboard,
   PermissionsAndroid,
   Platform,
+  Easing,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -30,7 +31,7 @@ type TabType = '보호소 소개' | '입양 홍보';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const INITIAL_BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT - 200;
 const MAX_BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT - 100;
-const KAKAO_APP_KEY = '888616c23f4ad02ee8c227411fa945dd';
+const KAKAO_APP_KEY = 'e65e93f752b1590bf9b8be83566dd5b6';
 
 interface ShelterInfo {
   name: string;
@@ -119,7 +120,10 @@ export default function AdoptScreen() {
     lat: 37.5665,
     lng: 126.9780,
   });
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const webViewRef = useRef<WebView>(null);
+  const pulseAnim = useRef(new Animated.Value(0.6)).current;
   
   const bottomSheetHeight = useRef(new Animated.Value(INITIAL_BOTTOM_SHEET_HEIGHT)).current;
   const bottomSheetY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
@@ -264,8 +268,46 @@ export default function AdoptScreen() {
   };
 
   const handleMapMessage = useCallback((event: WebViewMessageEvent) => {
-    console.log('Map WebView message:', event.nativeEvent.data);
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      console.log('Map WebView message:', event.nativeEvent.data);
+      if (data.type === 'loaded') {
+        setMapLoaded(true);
+        setMapError(null);
+      } else if (data.type === 'error') {
+        setMapLoaded(false);
+        setMapError(data.message || 'map error');
+      }
+    } catch {
+      // ignore parse errors
+    }
   }, []);
+
+  useEffect(() => {
+    setMapLoaded(false);
+    setMapError(null);
+  }, [currentLocation.lat, currentLocation.lng]);
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.6,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulseAnim]);
 
   const mapHtml = useMemo(
     () => `
@@ -407,21 +449,38 @@ export default function AdoptScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>나와 가까운 보호소</Text>
               <View style={styles.miniMapContainer}>
-                <WebView
-                  ref={webViewRef}
-                  originWhitelist={['*']}
-                  source={{ html: mapHtml, baseUrl: 'http://localhost' }}
-                  style={styles.miniMap}
-                  javaScriptEnabled
-                  domStorageEnabled
-                  scrollEnabled={false}
-                  mixedContentMode="always"
-                  allowFileAccess
-                  allowUniversalAccessFromFileURLs
-                  onMessage={handleMapMessage}
-                  onError={(e) => console.log('WebView load error', e.nativeEvent)}
-                  onHttpError={(e) => console.log('WebView HTTP error', e.nativeEvent)}
-                />
+                <View style={styles.miniMapWrapper}>
+                  <WebView
+                    ref={webViewRef}
+                    originWhitelist={['*']}
+                    source={{ html: mapHtml, baseUrl: 'http://localhost' }}
+                    style={styles.miniMap}
+                    javaScriptEnabled
+                    domStorageEnabled
+                    scrollEnabled={false}
+                    mixedContentMode="always"
+                    allowFileAccess
+                    allowUniversalAccessFromFileURLs
+                    onMessage={handleMapMessage}
+                    onError={(e) => {
+                      console.log('WebView load error', e.nativeEvent);
+                      setMapLoaded(false);
+                    }}
+                    onHttpError={(e) => {
+                      console.log('WebView HTTP error', e.nativeEvent);
+                      setMapLoaded(false);
+                    }}
+                    onLoadEnd={() => {
+                      // if map never loaded via message, keep skeleton
+                    }}
+                  />
+                  {!mapLoaded && (
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[styles.mapSkeleton, { opacity: pulseAnim }]}
+                    />
+                  )}
+                </View>
               </View>
             </View>
 
@@ -894,8 +953,20 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     overflow: 'hidden',
   },
+  miniMapWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
   miniMap: {
     flex: 1,
+  },
+  mapSkeleton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#E9ECEF',
   },
   searchButtonsContainer: {
     flexDirection: 'row',
