@@ -87,6 +87,13 @@ export default function WalkScreen() {
     });
   };
 
+  const handleStartWalk = () => {
+    const pet = petOptions.find((p) => p.name === selectedPet);
+    if (!pet) return;
+    closeBottomSheet();
+    navigation.navigate('WalkActive', { petName: pet.name, petImage: pet.image });
+  };
+
   // 산책 기록을 기반으로 요일별 산책 그래프 데이터 생성 (거리 총합 km)
   const weeklyData = useMemo(() => {
     const totals: Record<string, { [pet: string]: number }> = {};
@@ -267,7 +274,7 @@ export default function WalkScreen() {
               </View>
 
               <View style={styles.selectionButtonContainer}>
-                <CustomButton text="산책하기" onPress={() => {}} disabled={!selectedPet} width={350} />
+                <CustomButton text="산책하기" onPress={handleStartWalk} disabled={!selectedPet} width={350} />
               </View>
             </View>
           </Animated.View>
