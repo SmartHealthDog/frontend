@@ -16,14 +16,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomButton from '../components/CustomButton';
-
-// 플랫폼별 API URL 설정
-const getApiBaseUrl = () => {
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:8080';
-  }
-  return 'http://localhost:8080';
-};
+import { registerUser, isApiError } from '../api/auth';
 
 type RootStackParamList = {
   Login: undefined;
@@ -39,6 +32,7 @@ type RootStackParamList = {
     password: string;
     verificationCode: string;
     nickname: string;
+    profileImage?: string | null;
   };
 };
 
@@ -55,12 +49,14 @@ interface Props {
       password: string;
       verificationCode: string;
       nickname: string;
+      profileImage?: string | null;
     };
   };
 }
 
 const PetSignup: React.FC<Props> = ({ navigation, route }) => {
-  const { email, password, verificationCode, nickname } = route.params;
+  const { email, password, verificationCode, nickname, profileImage } =
+    route.params;
   const [petImage, setPetImage] = useState<string | null>(null);
   const [petName, setPetName] = useState('');
   const [petNameError, setPetNameError] = useState('');
@@ -182,68 +178,31 @@ const PetSignup: React.FC<Props> = ({ navigation, route }) => {
     setIsLoading(true);
     
     try {
-      const apiUrl = `${getApiBaseUrl()}/api/auth/register`;
-      const requestBody = {
-        nickname: nickname,
-        email: email,
-        password: password,
-        verificationCode: verificationCode,
-      };
-      
-      console.log('=== 회원가입 요청 시작 ===');
-      console.log('API URL:', apiUrl);
-      console.log('요청 데이터:', requestBody);
-      
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
+      await registerUser({
+        email,
+        password,
+        nickname,
+        emailVerificationToken: verificationCode,
+        profilePictureUri: profileImage ?? null,
       });
-
-      console.log('응답 상태 코드:', response.status);
-      
-      if (response.status === 201) {
-        console.log('회원가입 성공!');
-        Alert.alert('회원가입 완료', '회원가입이 완료되었습니다.', [
-          {
-            text: '확인',
-            onPress: () => {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              });
-            },
+      Alert.alert('회원가입 완료', '회원가입이 완료되었습니다.', [
+        {
+          text: '확인',
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
           },
-        ]);
-      } else {
-        const responseText = await response.text();
-        console.log('응답 텍스트:', responseText);
-        
-        let errorData: any = {};
-        try {
-          errorData = JSON.parse(responseText);
-        } catch (e) {
-          console.log('JSON 파싱 실패:', e);
-        }
-        
-        console.log('에러 데이터:', errorData);
-        
-        // 에러 메시지 추출 (descriptions 배열 또는 message 필드)
-        let errorMessage = '회원가입에 실패했습니다.';
-        if (errorData.descriptions && errorData.descriptions.length > 0) {
-          errorMessage = errorData.descriptions[0];
-        } else if (errorData.message) {
-          errorMessage = errorData.message;
-        }
-        errorMessage += `\n(상태 코드: ${response.status})`;
-        
-        Alert.alert('오류', errorMessage);
-      }
+        },
+      ]);
     } catch (error) {
-      console.error('회원가입 네트워크 에러:', error);
-      Alert.alert('오류', '네트워크 오류가 발생했습니다. 다시 시도해 주세요.\n' + String(error));
+      console.error('[signup] 회원가입 실패', error);
+      if (isApiError(error)) {
+        Alert.alert('오류', error.message);
+      } else {
+        Alert.alert('오류', '네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
+      }
     } finally {
       setIsLoading(false);
     }

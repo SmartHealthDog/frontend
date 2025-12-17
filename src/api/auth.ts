@@ -106,39 +106,54 @@ export const registerUser = async ({
   emailVerificationToken,
   profilePictureUri,
 }: RegisterUserPayload) => {
-  console.log('[auth] registerUser 요청', {
-    email,
-    nickname,
-    hasProfilePicture: Boolean(profilePictureUri),
-  });
-
-  const formData = new FormData();
   const jsonPayload = {
     email,
     password,
     nickname,
     emailVerificationToken,
   };
-  formData.append('request', JSON.stringify(jsonPayload));
+
+  console.log('[auth] registerUser 요청', {
+    ...jsonPayload,
+    hasProfilePicture: Boolean(profilePictureUri),
+  });
+
+  const formData = new FormData();
+
+  // Ensure Content-Type: application/json for the request part (RN will set boundary)
+  formData.append(
+    'request',
+    {
+      string: JSON.stringify(jsonPayload),
+      type: 'application/json',
+    } as any
+  );
 
   if (profilePictureUri) {
     formData.append('profilePicture', {
       uri: profilePictureUri,
-      type: getMimeTypeFromUri(profilePictureUri),
-      name: normalizeFileName(profilePictureUri),
+      type: getMimeTypeFromUri(profilePictureUri) || 'image/jpeg',
+      name: normalizeFileName(profilePictureUri) || 'profile.jpg',
     } as any);
   }
 
-  let response: Response;
+  let response: Response | undefined;
 
   try {
     response = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: 'POST',
       body: formData,
+      headers: {
+        Accept: 'application/json',
+      },
     });
   } catch (error) {
     console.error('[auth] registerUser 네트워크 오류', error);
     throw error;
+  }
+
+  if (!response) {
+    throw new Error('registerUser: no response received');
   }
 
   console.log('[auth] registerUser 응답 상태', response.status);
@@ -159,19 +174,27 @@ export const login = async (
   email: string,
   password: string
 ): Promise<AuthTokens> => {
+  console.log('[auth] login 요청', { email });
+
   const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
     body: JSON.stringify({ email, password }),
   });
 
   if (!response.ok) {
+    const errorBody = await response.clone().text().catch(() => '');
+    if (errorBody) {
+      console.log('[auth] login 실패 응답 본문', errorBody);
+    }
     const { message, codes } = await parseErrorResponse(response);
     throw new ApiError(message, response.status, codes);
   }
 
+  console.log('[auth] login 응답 상태', response.status);
   return response.json();
 };
 
