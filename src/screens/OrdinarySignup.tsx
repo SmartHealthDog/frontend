@@ -9,18 +9,10 @@ import {
   Image,
   Alert,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import CustomButton from '../components/CustomButton';
-
-// 플랫폼별 API URL 설정
-const getApiBaseUrl = () => {
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:8080';
-  }
-  return 'http://localhost:8080';
-};
+import { sendEmailVerification, isApiError } from '../api/auth';
 
 type RootStackParamList = {
   Login: undefined;
@@ -120,27 +112,16 @@ const OrdinarySignup: React.FC<Props> = ({ navigation }) => {
       setIsLoading(true);
       
       try {
-        const apiUrl = `${getApiBaseUrl()}/api/auth/register/send-email-verification`;
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: email,
-          }),
-        });
-
-        if (response.status === 201) {
-          setShowVerificationField(true);
-          Alert.alert('인증 코드 전송', '인증 코드가 이메일로 전송되었습니다.');
-        } else {
-          const errorData = await response.json().catch(() => ({}));
-          Alert.alert('오류', errorData.message || '인증 코드 전송에 실패했습니다.');
-        }
+        await sendEmailVerification(email);
+        setShowVerificationField(true);
+        Alert.alert('인증 코드 전송', '인증 코드가 이메일로 전송되었습니다.');
       } catch (error) {
-        console.error('이메일 인증 요청 에러:', error);
-        Alert.alert('오류', '네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
+        console.error('[signup] 이메일 인증 요청 실패', error);
+        if (isApiError(error)) {
+          Alert.alert('오류', error.message);
+        } else {
+          Alert.alert('오류', '네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
+        }
       } finally {
         setIsLoading(false);
       }

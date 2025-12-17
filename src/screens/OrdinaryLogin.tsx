@@ -7,13 +7,17 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import CustomButton from '../components/CustomButton';
+import { login, isApiError } from '../api/auth';
+import { storeAuthTokens } from '../storage/tokenStorage';
 
 type RootStackParamList = {
   Login: undefined;
   OrdinaryLogin: undefined;
+  Main: undefined;
 };
 
 type OrdinaryLoginScreenNavigationProp = NativeStackNavigationProp<
@@ -29,6 +33,7 @@ const OrdinaryLogin: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = (text: string) => {
     setEmail(text);
@@ -47,11 +52,37 @@ const OrdinaryLogin: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleLogin = () => {
-    console.log('로그인:', email, password);
+  const handleLogin = async () => {
+    if (!isLoginEnabled || isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const tokens = await login(email, password);
+      await storeAuthTokens(tokens);
+      Alert.alert('로그인 완료', '환영합니다!', [
+        {
+          text: '확인',
+          onPress: () =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Main' }],
+            }),
+        },
+      ]);
+    } catch (error) {
+      console.error('[login] 로그인 실패', error);
+      if (isApiError(error)) {
+        Alert.alert('로그인 실패', error.message);
+      } else {
+        Alert.alert('로그인 실패', '네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const isLoginEnabled = email !== '' && password !== '' && emailError === '';
+  const isLoginEnabled =
+    email !== '' && password !== '' && emailError === '' && !isLoading;
 
   return (
     <SafeAreaView style={styles.container}>

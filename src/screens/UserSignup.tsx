@@ -23,12 +23,14 @@ type RootStackParamList = {
     email: string;
     password: string;
     verificationCode: string;
+    profileImage?: string | null;
   };
   PetSignup: {
     email: string;
     password: string;
     verificationCode: string;
     nickname: string;
+    profileImage?: string | null;
   };
 };
 
@@ -44,13 +46,17 @@ interface Props {
       email: string;
       password: string;
       verificationCode: string;
+      profileImage?: string | null;
     };
   };
 }
 
 const UserSignup: React.FC<Props> = ({ navigation, route }) => {
-  const { email, password, verificationCode } = route.params;
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const { email, password, verificationCode, profileImage: initialProfileImage } =
+    route.params;
+  const [profileImage, setProfileImage] = useState<string | null>(
+    initialProfileImage || null
+  );
   const [nickname, setNickname] = useState('');
   const [nicknameError, setNicknameError] = useState('');
 
@@ -151,6 +157,7 @@ const UserSignup: React.FC<Props> = ({ navigation, route }) => {
       password,
       verificationCode,
       nickname,
+      profileImage,
     });
   };
 
