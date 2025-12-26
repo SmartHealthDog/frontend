@@ -1,35 +1,48 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { WALK_RECORDS_THIS_WEEK } from '../data/walkRecords';
 
 const PetHealthCard = () => {
+  const ppoppiRecord = useMemo(
+    () =>
+      WALK_RECORDS_THIS_WEEK.find((record) => record.petName === '뽀삐') ?? {
+        petName: '뽀삐',
+        petImage: require('../assets/img_adoptDog.png'),
+      },
+    []
+  );
+
+  const healthInfo = useMemo(
+    () => ({
+      weight: '체중 4.2kg ',
+      vaccine: '예방접종 2025.11.28 완료',
+    }),
+    []
+  );
+
   return (
     <View style={styles.card}>
 
     {/* 왼쪽 프로필 */}
-    <View style={styles.profilePlaceholder} />
+    <Image source={ppoppiRecord.petImage} style={styles.profileImage} />
 
     {/* 오른쪽 내용 영역 */}
     <View style={styles.contentBox}>
 
-      {/* 이름 + (품종, 몸무게) */}
+      {/* 이름 + 서브타이틀 */}
       <View style={styles.nameRow}>
-        <Text style={styles.name}>반려동물 이름 </Text>
-        <Text style={styles.subInfo}>(품종, 몸무게)</Text>
+        <Text style={styles.name}>{ppoppiRecord.petName}</Text>
+        <Text style={styles.subInfo}>(골든리트리버, 5kg)</Text>
       </View>
 
-      {/* 태그 + + 버튼 */}
+      {/* 건강 정보 태그 */}
       <View style={styles.tagRow}>
         <View style={styles.tagBlue}>
-          <Text style={styles.tagTextBlue}>태그1</Text>
+          <Text style={styles.tagTextBlue}>{healthInfo.weight}</Text>
         </View>
+      </View>
 
-        <View style={styles.tagGray}>
-          <Text style={styles.tagTextGray}>태그2</Text>
-        </View>
-
-        <TouchableOpacity style={styles.addBtn}>
-          <Text style={styles.addBtnText}>+</Text>
-        </TouchableOpacity>
+      <View style={styles.tagRow}>
       </View>
 
     </View>
@@ -53,7 +66,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
 
   },
-  profilePlaceholder: {
+  profileImage: {
     width: 60,
     height: 60,
     borderRadius: 48,
@@ -81,11 +94,13 @@ const styles = StyleSheet.create({
   subInfo: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#777',   // 품종, 몸무게 텍스트 색
+    color: '#777', 
+    marginLeft: 4,
   },
   
   tagRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginTop: 2,
   },
@@ -99,6 +114,7 @@ const styles = StyleSheet.create({
   tagTextBlue: {
     fontSize: 14,
     color: '#FFF',
+    marginBottom: 2,
   },
 
   tagGray: {
@@ -112,21 +128,7 @@ const styles = StyleSheet.create({
     color: '#555',
   },
 
-  addBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: '#0081D5',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  addBtnText: {
-    fontSize: 20,
-    color: '#0081D5',
-    fontWeight: '400',
-  },
 });
 
 export default PetHealthCard;
+
