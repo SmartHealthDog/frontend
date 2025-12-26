@@ -78,7 +78,7 @@ const HealthScreen: React.FC = () => {
         {/* 소변키트 진단 → 다른 화면으로 이동 */}
         <DiagnosisCard
           title="소변키트 진단"
-          description="강아지, 고양이의 구강 질환(치주염, 구내염)을 간단하게 진단"
+          description="소변키트 촬영을 통해 10종 항목 진단"
           image={urineDog}
           imageType="urine"
           onPress={() => navigation.navigate('UrineDiagnosis')}    // ★ 이동 추가

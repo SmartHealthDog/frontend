@@ -24,27 +24,27 @@ const MyPageScreen = () => {
   const navigation = useNavigation<MyPageNavProp>();
 
   const user = {
-    name: "이서돌님",
-    imageUrl: null,
+    name: "한국항공대",
+    imageUrl: require("../assets/img_emblem.png"),
   };
   const hasUserImage = !!user.imageUrl;
 
   const petList = [
     {
-      name: "이름",
-      type: "종류",
-      gender: "성별",
-      birth: "생년월일",
-      imageUrl: null,
-      healthInfo: ["치주염", "치주염"],
+      name: "뽀삐",
+      type: "골든리트리버",
+      gender: "여",
+      birth: "25-11-04",
+      imageUrl: require("../assets/img_adoptDog.png"),
+      healthInfo: ["4.2kg", "치주염"],
       condition: "양호",
     },
     {
-      name: "두둥",
-      type: "시바견",
+      name: "나비",
+      type: "페르시안",
       gender: "남",
       birth: "2022-01-01",
-      imageUrl: null,
+      imageUrl: require("../assets/img_adoptCat.png"),
       healthInfo: ["슬개골", "알러지"],
       condition: "주의",
     },
@@ -63,8 +63,12 @@ const MyPageScreen = () => {
         activeOpacity={0.8}
       >
         {hasUserImage ? (
-          <Image 
-            source={{ uri: user.imageUrl || undefined }}
+          <Image
+            source={
+              typeof user.imageUrl === "string"
+                ? { uri: user.imageUrl }
+                : user.imageUrl
+            }
             style={styles.userImage}
           />
         ) : (
@@ -160,16 +164,16 @@ const styles = StyleSheet.create({
   },
 
   userCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: "#E0E0E0",
   },
 
   userImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
 
   userRightBox: {

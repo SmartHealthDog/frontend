@@ -170,3 +170,4 @@ export const WALK_RECORDS_LAST_WEEK: WalkRecord[] = [
 
 export const WALK_RECORDS_ALL: WalkRecord[] = [...WALK_RECORDS_THIS_WEEK, ...WALK_RECORDS_LAST_WEEK];
 
+

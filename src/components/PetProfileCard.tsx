@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, ImageSourcePropType } from "react-native";
 import CustomButton from "./CustomButton";
 import BlueButton from "./BlueButton";
 
@@ -9,7 +9,7 @@ interface PetProfileCardProps {
   type: string;
   gender: string;
   birth: string;
-  imageUrl?: string | null;
+  imageUrl?: string | ImageSourcePropType | null;
   healthInfo?: string[];
   condition: string;
   onPressHistory?: () => void;
@@ -27,7 +27,7 @@ const PetProfileCard: React.FC<PetProfileCardProps> = ({
   onPressHistory,
   onPressEdit,
 }) => {
-  const hasImage = imageUrl && imageUrl.length > 0;
+  const hasImage = !!imageUrl;
 
   return (
     <View style={styles.cardWrapper}>
@@ -42,7 +42,12 @@ const PetProfileCard: React.FC<PetProfileCardProps> = ({
 
         {/* 이미지 or 회색 원 */}
         {hasImage ? (
-          <Image source={{ uri: imageUrl }} style={styles.petImage} />
+          <Image
+            source={
+              typeof imageUrl === "string" ? { uri: imageUrl } : imageUrl
+            }
+            style={styles.petImage}
+          />
         ) : (
           <View style={styles.petCircle} />
         )}
@@ -57,16 +62,16 @@ const PetProfileCard: React.FC<PetProfileCardProps> = ({
 
         <View style={styles.tagRow}>
             {healthInfo.map((item, idx) => (
-            <BlueButton
+              <BlueButton
                 type="tag"
                 key={idx}
-                text="치주염" 
-                textColor="#FFFFFF"  
+                text={item}
+                textColor="#FFFFFF"
                 fontSize={14}
-                style={{ marginRight: 8}}
+                style={{ marginRight: 8, marginBottom: 6 }}
                 paddingVertical={4}
                 paddingHorizontal={12}
-            />
+              />
             ))}
         </View>
         </View>
@@ -132,14 +137,14 @@ const styles = StyleSheet.create({
   petImage: {
     width: 80,
     height: 80,
-    borderRadius: 12,
+    borderRadius: 40,
     alignSelf: "center",
   },
 
   petCircle: {
     width: 80,
     height: 80,
-    borderRadius: 100,
+    borderRadius: 40,
     backgroundColor: "#E0E0E0",
     alignSelf: "center",
   },

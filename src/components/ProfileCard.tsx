@@ -1,17 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 
 const ProfileCard = () => {
   return (
     <View style={styles.container}>
       
-      {/* 프로필 동그라미 */}
-      <View style={styles.profileCircle} />
+      {/* 프로필 이미지 */}
+      <Image source={require('../assets/img_emblem.png')} style={styles.profileImage} />
 
       {/* 텍스트 영역 */}
       <View style={styles.textContainer}>
         <Text style={styles.subtitle}>다시 만나서 반가워요</Text>
-        <Text style={styles.username}>이서영 님</Text>
+        <Text style={styles.username}>한국항공대 님</Text>
       </View>
 
     </View>
@@ -25,11 +25,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  profileCircle: {
+  profileImage: {
     width: 80,
     height: 80,
     borderRadius: 100,
-    backgroundColor: '#E8E8E8', 
+    backgroundColor: '#E8E8E8',
   },
 
   textContainer: {
